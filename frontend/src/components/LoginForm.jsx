@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../style/LoginForm.css";
+import { supabase } from "../services/supabaseClient";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -9,17 +10,20 @@ function LoginForm() {
 
   const navigate = useNavigate();
 
-  const testEmail = "test@gmail.com";
-  const testPassword = "1234";
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
 
-    if (email === testEmail && password === testPassword) {
+    const { data, error: signInError} = await supabase.auth.signInWithPassword({
+     email: email,
+     password: password, 
+    });
+
+    if (signInError) {
+      setError(signInError.message);
+    }
+    else {
       setError("");
-      navigate("/Home");
-    } else {
-      setError("Wrong email or password");
+      navigate("/");
     }
   };
 
