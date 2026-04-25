@@ -1,17 +1,17 @@
 import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
+import VTT from "./pages/VTT";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Routes>
-      {/* "/" renders the Homepage, but only if signed in */}
-      <Route 
-        path="/" 
+      {/* "/" renders the VTT page, but only if signed in */}
+      <Route
+        path="/"
         element={
           <ProtectedRoute>
-            <Home /> 
+            <VTT />
           </ProtectedRoute>
         }
       />
