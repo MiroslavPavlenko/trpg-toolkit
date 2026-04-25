@@ -8,13 +8,10 @@ import MapBackgroundPicker from "../components/MapBackgroundPicker";
 import Modal from "../components/Modal";
 import TopBar from "../components/TopBar";
 
-
 function VTT() {
     const navigate = useNavigate();
     const [backgroundUrl, setBackgroundUrl] = useState(null);
     const [openModal, setOpenModal] = useState(null);
-
-
 
     const iconButtonStyle = {
         background: "transparent",
@@ -72,35 +69,34 @@ function VTT() {
                 }}
             >
                 <div
-    style={{
-        position: "fixed",
-        right: "20px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-        background: "#222",
-        padding: "12px 8px",
-        borderRadius: "999px",
-        border: "1px solid #444",
-    }}
->
-    <button
-        onClick={() => setOpenModal("dollar")}
-        style={iconButtonStyle}
-        aria-label="loot"
-    >
-        <LuCoins />
-    </button>
-    <button
-        onClick={() => setOpenModal("chart")}
-        style={iconButtonStyle}
-        aria-label="stats"
-    >
-        <LuChartBar />
-    </button>
-</div>
+                    style={{
+                    position: "fixed",
+                    right: "20px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                    background: "#222",
+                    padding: "12px 8px",
+                    borderRadius: "999px",
+                    border: "1px solid #444",}}
+                >
+                    <button
+                    onClick={() => setOpenModal("dollar")}
+                    style={iconButtonStyle}
+                    aria-label="loot"
+                    >
+                        <LuCoins />
+                    </button>
+                     <button
+                        onClick={() => setOpenModal("chart")}
+                        style={iconButtonStyle}
+                        aria-label="stats"
+                    >
+                        <LuChartBar />
+                    </button>
+                </div>
 
                 <div
                     style={{

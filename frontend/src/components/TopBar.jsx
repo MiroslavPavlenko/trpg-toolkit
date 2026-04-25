@@ -6,8 +6,8 @@ import { supabase } from "../services/supabaseClient";
 import Modal from "./Modal";
 
 function TopBar(){
-    const { session } = useSession();
     const navigate = useNavigate();
+    const { session } = useSession();
     const [menuOpen, setMenuOpen] = useState(false);
     const [ruleSet, setRuleSet] = useState("5.0");
 
@@ -55,7 +55,8 @@ function TopBar(){
                 href="https://github.com/eblaug-uw/trpg-toolkit"
                 target="_blank"
                 rel="noreferrer"
-                style={{ color: "white", fontSize: "1.5rem" }}>
+                style={{ color: "white", fontSize: "1.5rem" }}
+                >
                     <FaGithub />
                 </a>
 
