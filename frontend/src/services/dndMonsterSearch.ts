@@ -1,7 +1,5 @@
-// Base URL for the D&D 5e 2014 REST API. Change "2014" to "2024" for the 5.5 ruleset.
 const DND_API_BASE = "https://www.dnd5eapi.co/api/2014";
 
-// Sub-interfaces used inside DndMonster — each maps directly to a nested API field.
 export interface MonsterSpeed {
   walk?: string;
   fly?: string;
@@ -50,8 +48,6 @@ export interface Sense {
   truesight?: string;
 }
 
-// Full shape of a monster returned by the API.
-// Optional fields (?) may be missing depending on the monster — always guard before rendering.
 export interface DndMonster {
   index: string;
   name: string;
@@ -86,9 +82,6 @@ export interface DndMonster {
   image?: string;
 }
 
-// Fetches a single monster by name from the D&D API.
-// Converts the input to a URL-safe slug (e.g. "Ancient Red Dragon" → "ancient-red-dragon").
-// Throws an error if the monster is not found so the component can show a message.
 export async function fetchDndMonster(monsterName: string): Promise<DndMonster> {
   const slug = monsterName.trim().toLowerCase().replace(/\s+/g, "-");
   const response = await fetch(`${DND_API_BASE}/monsters/${slug}`, {
