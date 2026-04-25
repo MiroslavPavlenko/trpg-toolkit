@@ -9,7 +9,7 @@ function ProtectedRoute ({ children }) {
     }
 
     if (!session) {
-        return <Navigate to="/ogin" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     return children;
