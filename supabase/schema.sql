@@ -2,7 +2,7 @@
 -- Database setup for the TRPG Toolkit project.
 -- Idempotent: safe to re-run on an existing or fresh Supabase project.
 
--- ------------------------------------------------------------------
+-- -------------------  ----------------------------------------------
 -- Storage buckets
 -- ------------------------------------------------------------------
 -- Two private buckets: `maps` for backdrop images, `tokens` for character/creature pieces.
