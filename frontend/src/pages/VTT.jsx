@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LuImage, LuMap, LuUserPlus, LuTable, LuCoins, LuChartBar } from "react-icons/lu";
 import MonsterSearch from "../components/MonsterSearch";
@@ -12,6 +12,11 @@ function VTT() {
     const navigate = useNavigate();
     const [backgroundUrl, setBackgroundUrl] = useState(null);
     const [openModal, setOpenModal] = useState(null);
+    const [imgSize,setImgSize] = useState(null);
+    const [windowSize, setWindowSize] = useState({
+        width: window.innerWidth,
+        height: window.innerHeight,
+    });
 
     const iconButtonStyle = {
         background: "transparent",
@@ -55,15 +60,52 @@ function VTT() {
         }
     };
 
+    useEffect(()=>{
+        console.log("Window Size (width x height): ", window.innerWidth, "x", window.innerHeight);
+
+        if (!backgroundUrl){
+            setImgSize(null);
+            return;
+        } 
+
+        const img = new Image();
+        img.onload = () => {
+            console.log("Map Size(width x height): ", img.naturalWidth, "x", img.naturalHeight);
+            setImgSize({ width: img.naturalWidth, height: img.naturalHeight});
+        };
+        img.src = backgroundUrl;
+    }, [backgroundUrl]);
+
+    useEffect(()=>{
+        const handleResize = () => {
+            const newSize = { width: window.innerWidth, height: window.innerHeight };
+                console.log("Window Size (width x height): ", newSize.width, "x", newSize.height);
+            setWindowSize(newSize);
+        };
+
+        handleResize();
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     return (
-        <>
+        <div style={{display: "flex", flexDirection: "column", height: "100vh"}}>
             <TopBar />
             <div
                 style={{
-                    minHeight: "calc(100vh - 60px)",
+                    flex: 1,
+                    minHeight: 0, 
+                    boxSizing: "border-box",
+                    overflow: "hidden",
                     padding: "40px",
-                    backgroundImage: backgroundUrl ? `url("${backgroundUrl}")` : "",
-                    backgroundSize: "cover",
+                    backgroundImage: 
+                        backgroundUrl 
+                        ? `url("${backgroundUrl}")` : "",
+                    backgroundSize:
+                        (imgSize 
+                        && imgSize.width >=windowSize.width
+                        && imgSize.height >= windowSize.height)
+                        ? "auto" : "cover",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
                 }}
@@ -89,7 +131,7 @@ function VTT() {
                     >
                         <LuCoins />
                     </button>
-                     <button
+                    <button
                         onClick={() => setOpenModal("chart")}
                         style={iconButtonStyle}
                         aria-label="stats"
@@ -150,7 +192,7 @@ function VTT() {
                     {renderModalContent()}
                 </Modal>
             </div>
-        </>
+        </div>
     );
 }
 

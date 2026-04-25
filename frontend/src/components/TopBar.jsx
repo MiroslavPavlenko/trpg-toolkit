@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { FaGithub, FaLess, FaUserCircle } from "react-icons/fa";
+import { useState,  } from "react";
+import { FaGithub, FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../hooks/useSession";
 import { supabase } from "../services/supabaseClient";
@@ -24,7 +24,7 @@ function TopBar(){
                 alignItems: "center",
                 justifyContent: "space-between",
                 padding: "12px 24px",
-                borderBottom: "1px solid #ccc",
+                borderBottom: "1px solid #222",
                 background: "#222",
                 color: "white",
             }}
