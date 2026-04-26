@@ -1,5 +1,5 @@
 /* --Imports-- */
-import { useState, useEffect, useRef } from "react";                    // React core hooks
+import { useState, useRef } from "react";                    // React core hooks
 import { useNavigate } from "react-router-dom";                         // Routing
 import { CombatTracker } from "../services/combatTracker";              // Combat tracker service
 import MonsterSearch from "../components/MonsterSearch";                // Table Look - Monster
@@ -9,9 +9,9 @@ import MapBackgroundPicker from "../components/MapBackgroundPicker";    // Pick-
 import Modal from "../components/Modal";                                // generic modal
 import TopBar from "../components/TopBar";                              // Top Nav
 import MapCanvas from "../components/MapCanvas";                        // Konva canvas
-import ZoomPill from "../components/ZoomPill";                          // Hover ZoomPill
-import RightPill from "../components/RightPill";                        // Right NavPill
-import BottomPill from "../components/BottomPill";                      // Bottom NavPill
+import PillZoom from "../components/PillZoom";                          // Hover ZoomPill
+import PillRight from "../components/PillRight";                        // Right NavPill
+import PillBottom from "../components/PillBottom";                      // Bottom NavPill
 import InitiativeTracker from "../components/InitiativeTracker";        // Initiative panel
 import AddParticipantForm from "../components/AddParticipantForm";      // Add character form
 import ParticipantSheet from "../components/ParticipantSheet";          // Selected participant sheet
@@ -115,7 +115,7 @@ function VTT() {
         image: "Upload Image",
         map: "Set Map Background",
         person: "Add Character",
-        table: "Lookup Tables",
+        tables: "Lookup Tables",
         dollar: "Loot",
         chart: "Stats",
     };
@@ -134,7 +134,7 @@ function VTT() {
                 );
             case "person":
                 return <AddParticipantForm onAdd={handleAddParticipant} />;
-            case "table":
+            case "tables":
                 return (
                     <>
                         <MonsterSearch />
@@ -191,22 +191,22 @@ function VTT() {
                 />
 
                 {/* Right-side pill: loot + stats */}
-                <RightPill
+                <PillRight
                     onLoot={() => setOpenModal("dollar")}
                     onStats={() => setOpenModal("chart")}
                 />
 
                 {/* Lower-right pill: zoom in / zoom out */}
-                <ZoomPill
+                <PillZoom
                     onZoomIn={() => mapCanvasRef.current?.zoomIn()}
                     onZoomOut={() => mapCanvasRef.current?.zoomOut()}
                 />
                 {/* Bottom pill: image / map / character / lookup tables */}
-                <BottomPill
+                <PillBottom
                     onImage={() => setOpenModal("image")}
                     onMap={() => setOpenModal("map")}
                     onAddCharacter={() => setOpenModal("person")}
-                    onTable={() => setOpenModal("tables")}
+                    onTables={() => setOpenModal("tables")}
                 />
 
                 {/* Generic modal — body is fanned out by openModal value */}

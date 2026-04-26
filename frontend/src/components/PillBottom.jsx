@@ -1,7 +1,7 @@
 import { LuImage,LuMap, LuUserPlus, LuTable} from "react-icons/lu"
 import "../style/PillButton.css";
 
-function BottomPill({ onImage, onMap, onAddCharacter, onTables }){
+function PillBottom({ onImage, onMap, onAddCharacter, onTables }){
     return (
         <div
             style={{
@@ -26,11 +26,11 @@ function BottomPill({ onImage, onMap, onAddCharacter, onTables }){
             <button onClick={onAddCharacter} className="icon-button" aria-label="add character">
                 <LuUserPlus />
             </button>
-            <button onClick={onTables} className="icon-button" aria-label="lookup tables">
+            <button onClick={onTables} className="icon-button" aria-label="Lookup Tables">
                 <LuTable />
             </button>
         </div>
     );
 }
 
-export default BottomPill;
+export default PillBottom;

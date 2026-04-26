@@ -3,7 +3,7 @@ import { useState } from "react";
 import { LuZoomIn, LuZoomOut } from "react-icons/lu";
 import "../style/PillButton.css";
 
-function ZoomPill({ onZoomIn, onZoomOut }) {
+function PillZoom({ onZoomIn, onZoomOut }) {
 /* --States-- */
     const [zoomPillOpen, setZoomPillOpen] = useState(false);
 
@@ -65,4 +65,4 @@ function ZoomPill({ onZoomIn, onZoomOut }) {
     );
 }
 
-export default ZoomPill;
+export default PillZoom;

@@ -1,7 +1,7 @@
 import { LuCoins, LuChartBar } from "react-icons/lu";
 import "../style/PillButton.css";
 
-function RightPill ({onLoot, onStats}) {
+function PillRight ({onLoot, onStats}) {
     return (
         <div
             style={{
@@ -28,4 +28,4 @@ function RightPill ({onLoot, onStats}) {
     )
 }
 
-export default RightPill;
+export default PillRight;
