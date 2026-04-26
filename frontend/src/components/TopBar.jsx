@@ -1,4 +1,4 @@
-import { useState,  } from "react";
+import { useState } from "react";
 import { FaGithub, FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../hooks/useSession";

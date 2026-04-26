@@ -19,6 +19,7 @@ function App() {
        {/* "/login" renders the Login page */}
       <Route path="/login" element={<Login />} />
     </Routes>
+
   );
 }
 

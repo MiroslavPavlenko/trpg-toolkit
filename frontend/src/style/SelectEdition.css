@@ -1,0 +1,16 @@
+.edition-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 26px;
+}
+
+.drop-dow {
+  width: 220px;
+  height: 34px;
+  font-size: 12px;
+  padding: 8px 14px;
+  border: 3px solid black;
+  border-radius: 8px;
+  background-color: white;
+}

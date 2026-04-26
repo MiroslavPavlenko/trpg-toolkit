@@ -59,7 +59,7 @@ export async function getSignedUrl(
     .createSignedUrl(path, expiresInSeconds);
 
     if(error || !data){
-        throw new Error(`Could not sign URL: ${error?.message ?? "unknow error"}`);
+        throw new Error(`Could not sign URL: ${error?.message ?? "unknown error"}`);
     }
 
     return data.signedUrl;
