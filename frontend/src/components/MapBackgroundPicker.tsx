@@ -7,8 +7,8 @@ import { getSignedUrl, listImages } from "../services/vttStorage";
 
 type Props = {
     onSelect: (url: string) => void;   // function the parent passes us, called with the chosen image URL
-    showGrid: boolean;
-    onToggleGrid: () => void;
+    pixelsPerFoot: number;
+    onChangePixelsPerFoot: (value: number) => void;
 };
 
 type MapItem = {
@@ -16,7 +16,12 @@ type MapItem = {
     url: string;
 };
 
-function MapBackgroundPicker({ onSelect, showGrid, onToggleGrid }: Props) {
+function defaultPixelsPerFoot(naturalWidth: number): number {
+    if (naturalWidth >= 6000) return 50;
+    return 12;
+}
+
+function MapBackgroundPicker({ onSelect, pixelsPerFoot, onChangePixelsPerFoot }: Props) {
     const [maps, setMaps] = useState<MapItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -43,25 +48,49 @@ function MapBackgroundPicker({ onSelect, showGrid, onToggleGrid }: Props) {
         };
         loadMaps();
     },[]);
+
+    const handleMapClick = (e: React.MouseEvent<HTMLButtonElement>, url: string) => {
+        const img = e.currentTarget.querySelector("img") as HTMLImageElement | null;
+        const w = img?.naturalWidth ?? 0;
+        if (w > 0) {
+            onChangePixelsPerFoot(defaultPixelsPerFoot(w));
+        }
+        onSelect(url);
+    };
+
     return (
         <div>
             <h2>
                 Maps
             </h2>
-            <button
-                onClick={onToggleGrid}
+
+            <label
                 style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px",
                     marginBottom: "12px",
-                    padding: "6px 12px",
-                    background: showGrid ? "#3b82f6" : "#444",
-                    color: "white",
-                    border: "1px solid #666",
-                    borderRadius: "6px",
-                    cursor: "pointer",
+                    maxWidth: "200px",
+                    fontSize: "0.85rem",
+                    color: "#ddd",
                 }}
             >
-                Grid: {showGrid ? "On" : "Off"}
-            </button>
+                Pixels per foot (1 grid box = 5 ft)
+                <input
+                    type="number"
+                    min="1"
+                    value={pixelsPerFoot}
+                    onChange={(e) => onChangePixelsPerFoot(Number(e.target.value))}
+                    style={{
+                        padding: "6px 8px",
+                        background: "#333",
+                        color: "#eee",
+                        border: "1px solid #555",
+                        borderRadius: "6px",
+                    }}
+                />
+            </label>
+            
             {loading && <p>Loading Maps...</p>}
             {error && <p style={{color: "red" }}>{error}</p>}
             {!loading && maps.length ===0 && (
@@ -79,7 +108,7 @@ function MapBackgroundPicker({ onSelect, showGrid, onToggleGrid }: Props) {
                     {maps.map((m) => (
                         <button
                             key={m.name}
-                            onClick={()=> onSelect(m.url)}
+                            onClick={(e)=> handleMapClick(e, m.url)}
                             style={{
                                 padding: 0,
                                 border: "1px solid #999",

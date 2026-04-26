@@ -1,66 +1,67 @@
 /* --Imports-- */
 import { useState } from "react";
-import { LuZoomIn, LuZoomOut } from "react-icons/lu";
+import { LuZoomIn, LuZoomOut, LuSearch } from "react-icons/lu";
 import "../style/PillButton.css";
 
-function PillZoom({ onZoomIn, onZoomOut }) {
+function PillZoom({
+    onZoomIn,
+    onZoomOut,
+}) {
 /* --States-- */
-    const [zoomPillOpen, setZoomPillOpen] = useState(false);
+    const [open, setOpen] = useState(false);
 
 /* --Render-- */
     return (
         <div
-            onMouseEnter={() => setZoomPillOpen(true)}
-            onMouseLeave={() => setZoomPillOpen(false)}
+            onMouseEnter={() => setOpen(true)}
+            onMouseLeave={() => setOpen(false)}
             style={{
-                position: "fixed",
-                right: "20px",
-                bottom: "20px",
+                position: "relative",
                 display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-                background: "#222",
-                padding: "12px 8px",
-                borderRadius: "999px",
-                border: "1px solid #444",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "1em",
+                height: "1em"
             }}
         >
-            {zoomPillOpen ? (
-                <>
-                    <button onClick={onZoomIn} className="icon-button" aria-label="zoom in">
+            {open && (
+                <div
+                    style={{
+                        position: "absolute",
+                        right: "0%",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "8px",
+                        alignItems: "center",
+                        background: "#222",
+                        border: "1px solid #444",
+                        borderRadius: "999px",
+                        padding: "8px 16px",
+                        color: "#eee",
+                        whiteSpace: "nowrap",
+                    }}
+                >
+                    <button
+                        onClick={onZoomIn}
+                        className="icon-button"
+                        aria-label="zoom in"
+                    >
                         <LuZoomIn />
                     </button>
-                    <button onClick={onZoomOut} className="icon-button" aria-label="zoom out">
+                    <button
+                        onClick={onZoomOut}
+                        className="icon-button"
+                        aria-label="zoom out"
+                    >
                         <LuZoomOut />
                     </button>
-                </>
-            ) : (
-                <div
-                    className="icon-nutton"
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        pointerEvents: "none",
-                    }}
-                    aria-label="zoom"
-                >
-                    <svg
-                        width="1rem"
-                        height="1rem"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="white"
-                        strokeWidth="1"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        {/* Magnifying glass */}
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
                 </div>
             )}
+
+            {/* Always-visible magnifier icon */}
+            <LuSearch />
         </div>
     );
 }

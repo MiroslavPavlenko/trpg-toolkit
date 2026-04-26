@@ -9,6 +9,8 @@ import MapBackgroundPicker from "../components/MapBackgroundPicker";    // Pick-
 import Modal from "../components/Modal";                                // generic modal
 import TopBar from "../components/TopBar";                              // Top Nav
 import MapCanvas from "../components/MapCanvas";                        // Konva canvas
+import PillMapContorl from "../components/PillMapContorl";
+import PillGrid from "../components/PillGrid";                      
 import PillZoom from "../components/PillZoom";                          // Hover ZoomPill
 import PillRight from "../components/PillRight";                        // Right NavPill
 import PillBottom from "../components/PillBottom";                      // Bottom NavPill
@@ -19,14 +21,18 @@ function VTT() {
 /* --States-- */    
     const navigate = useNavigate();
     const mapCanvasRef = useRef(null);
+    const combatRef = useRef(null);
     const [backgroundUrl, setBackgroundUrl] = useState(null);           // URL of currently selected map image
     const [openModal, setOpenModal] = useState(null);                   // Which modal is open
-    const [showGrid, setShowGrid] = useState(false);
+    const [showGrid, setShowGrid] = useState(true);
+    const [pixelsPerFoot, setPixelsPerFoot] = useState(10);
+    const [gridFineTune, setGridFineTune] = useState(0);
     const [participants, setParticipants] = useState([]);
     const [initiativeQueue, setInitiativeQueue] = useState([]);
     const [combatActive, setCombatActive] = useState(false);
     const [selectedParticipant, setSelectedParticipant] = useState(null);
-    const combatRef = useRef(null);
+    const [gridOffsetX, setGridOffsetX] = useState(0);
+    const [gridOffsetY, setGridOffsetY] = useState(0);
 
     // Pull the current ordered participant list out of the CombatTracker queue,
     // carrying the rolled initiative total so the UI can display and edit it.
@@ -119,6 +125,8 @@ function VTT() {
         dollar: "Loot",
         chart: "Stats",
     };
+
+    const gridSize = Math.max(4, 5 * pixelsPerFoot + gridFineTune); 
     
     const renderModalContent = () => {                                  // Picks the body content for the modal based on which one is open
         switch (openModal) {
@@ -127,9 +135,9 @@ function VTT() {
             case "map":
                 return (
                     <MapBackgroundPicker
-                    onSelect = {setBackgroundUrl} 
-                    showGrid = {showGrid}
-                    onToggleGrid={() => setShowGrid(g =>!g)}
+                        onSelect = {setBackgroundUrl} 
+                        pixelsPerFoot={pixelsPerFoot}
+                        onChangePixelsPerFoot={setPixelsPerFoot}
                     />
                 );
             case "person":
@@ -166,7 +174,14 @@ function VTT() {
                 }}
             >
                 {/* Konva canvas: only renders once a map image has loaded */}
-                <MapCanvas ref={mapCanvasRef} backgroundUrl={backgroundUrl} showGrid={showGrid} />
+                <MapCanvas 
+                    ref={mapCanvasRef}
+                    backgroundUrl={backgroundUrl}
+                    showGrid={showGrid} 
+                    gridSize={gridSize}
+                    gridOffsetX={gridOffsetX}
+                    gridOffsetY={gridOffsetY}
+                />
 
                 {/* Initiative tracker overlay */}
                 <InitiativeTracker
@@ -196,11 +211,26 @@ function VTT() {
                     onStats={() => setOpenModal("chart")}
                 />
 
-                {/* Lower-right pill: zoom in / zoom out */}
-                <PillZoom
-                    onZoomIn={() => mapCanvasRef.current?.zoomIn()}
-                    onZoomOut={() => mapCanvasRef.current?.zoomOut()}
-                />
+                {/* Lower-right pill: map control */}
+                <PillMapContorl>
+                    <PillZoom
+                        onZoomIn={() => mapCanvasRef.current?.zoomIn()}
+                        onZoomOut={() => mapCanvasRef.current?.zoomOut()}
+                    />
+                    <PillGrid 
+                        showGrid={showGrid}
+                        onToggleGrid={() => setShowGrid(g => !g)}
+                        pixelsPerFoot={pixelsPerFoot}
+                        onChangePixelsPerFoot={setPixelsPerFoot}
+                        gridFineTune={gridFineTune}
+                        onChangeGridFineTune={setGridFineTune}
+                        gridOffsetX={gridOffsetX}
+                        onChangeGridOffsetX={setGridOffsetX}
+                        gridOffsetY={gridOffsetY}
+                        onChangeGridOffsetY={setGridOffsetY}     
+                    />
+                </PillMapContorl>
+
                 {/* Bottom pill: image / map / character / lookup tables */}
                 <PillBottom
                     onImage={() => setOpenModal("image")}
