@@ -2,7 +2,13 @@ import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "re
 import { Stage, Layer, Image as KonvaImage, Line } from "react-konva";
 
 
-const MapCanvas = forwardRef(({ backgroundUrl, showGrid }, ref) => {
+const MapCanvas = forwardRef(({ 
+    backgroundUrl,
+    showGrid,
+    gridSize = 50,
+    gridOffsetX = 0,
+    gridOffsetY = 0,
+}, ref) => {
 /* --States-- */
     const stageRef = useRef(null);
     const containerRef = useRef(null);
@@ -12,7 +18,6 @@ const MapCanvas = forwardRef(({ backgroundUrl, showGrid }, ref) => {
     
 /* --Constants-- */
     const SCALE_BY = 1.05;
-    const GRID_SIZE = 50;
     const GRID_COLOR = "rgba(0,0,0,0.6)";
 
     const handleWheel = (e) =>{
@@ -84,10 +89,13 @@ const MapCanvas = forwardRef(({ backgroundUrl, showGrid }, ref) => {
 
     const gridLine = [];
     if(imgSize) {
-        for (let x = 0; x <= drawWidth; x += GRID_SIZE){
+        const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
+        const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
+
+        for (let x = offX; x <= drawWidth; x += gridSize){
             gridLine.push({ points:[x, 0, x, drawHeight], key: `v${x}` });
         }
-        for(let y = 0; y <= drawHeight; y+= GRID_SIZE){
+        for(let y = offY; y <= drawHeight; y+= gridSize){
             gridLine.push({ points:[0, y, drawWidth, y], key: `h${y}` });
         }
     }

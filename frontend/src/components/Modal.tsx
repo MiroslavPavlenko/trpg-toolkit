@@ -31,8 +31,8 @@ function Modal({ isOpen, onClose, children, title} : Props){
             <div
             onClick={(e) => e.stopPropagation()}
             style={{
-                background: "white",
-                color: "black",
+                background: "#2a3439",
+                color: "#eee",
                 borderRadius: "8px",
                 padding: "20px",
                 minWidth: "320px",
