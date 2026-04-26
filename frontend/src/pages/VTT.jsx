@@ -22,7 +22,7 @@ function VTT() {
     const mapCanvasRef = useRef(null);
     const [backgroundUrl, setBackgroundUrl] = useState(null);           // URL of currently selected map image
     const [openModal, setOpenModal] = useState(null);                   // Which modal is open
-
+    const [showGrid, setShowGrid] = useState(false);
     const [participants, setParticipants] = useState([]);
     const [initiativeQueue, setInitiativeQueue] = useState([]);
     const [combatActive, setCombatActive] = useState(false);
@@ -136,7 +136,13 @@ function VTT() {
             case "image":
                 return <ImageUploader />;
             case "map":
-                return <MapBackgroundPicker onSelect={setBackgroundUrl} />;
+                return (
+                    <MapBackgroundPicker
+                    onSelect = {setBackgroundUrl} 
+                    showGrid = {showGrid}
+                    onToggleGrid={() => setShowGrid(g =>!g)}
+                    />
+                );
             case "person":
                 return <AddParticipantForm onAdd={handleAddParticipant} />;
             case "table":
@@ -171,7 +177,7 @@ function VTT() {
                 }}
             >
                 {/* Konva canvas: only renders once a map image has loaded */}
-                <MapCanvas ref={mapCanvasRef} backgroundUrl={backgroundUrl} />
+                <MapCanvas ref={mapCanvasRef} backgroundUrl={backgroundUrl} showGrid={showGrid} />
 
                 {/* Initiative tracker overlay */}
                 <InitiativeTracker
