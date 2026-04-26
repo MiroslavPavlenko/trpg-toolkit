@@ -1,3 +1,5 @@
+import type { Combatant } from "./combatant";
+
 const DND_API_BASE = "https://www.dnd5eapi.co/api/2014";
 
 export interface MonsterSpeed {
@@ -48,7 +50,7 @@ export interface Sense {
   truesight?: string;
 }
 
-export interface DndMonster {
+export interface DndMonster extends Combatant {
   index: string;
   name: string;
   size: string;
