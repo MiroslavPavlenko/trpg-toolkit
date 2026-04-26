@@ -1,0 +1,124 @@
+.initiative-tracker {
+  position: fixed;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+/* Dice / Next-turn button */
+.initiative-dice-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.initiative-dice-btn--idle {
+  background: #222;
+  border: 2px solid #555;
+  color: white;
+}
+
+.initiative-dice-btn--active {
+  background: #f0c040;
+  border: 2px solid #f0c040;
+  color: #222;
+}
+
+.initiative-dice-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Per-entry wrapper */
+.initiative-entry {
+  position: relative;
+}
+
+/* Initiative total badge (top-left of avatar) */
+.initiative-badge {
+  position: absolute;
+  top: -10px;
+  left: -16px;
+  background: #444;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 0.7em;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1.5;
+  min-width: 24px;
+  text-align: center;
+}
+
+.initiative-badge-input {
+  position: absolute;
+  top: -10px;
+  left: -16px;
+  width: 40px;
+  padding: 2px 4px;
+  font-size: 0.7em;
+  border-radius: 8px;
+  border: 1px solid #f0c040;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* HP quick-action popover */
+.hp-popover {
+  position: absolute;
+  left: 64px;
+  top: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 10px;
+  z-index: 100;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 150px;
+}
+
+.hp-popover__title {
+  font-size: 0.78em;
+  font-weight: bold;
+  color: #333;
+}
+
+.hp-popover__input {
+  width: 100%;
+  padding: 3px 6px;
+  box-sizing: border-box;
+}
+
+.hp-popover__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.hp-popover__btn {
+  flex: 1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 0;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+.hp-popover__btn--damage { background: #c0392b; }
+.hp-popover__btn--heal   { background: #27ae60; }

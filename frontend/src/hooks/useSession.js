@@ -15,7 +15,7 @@ export function useSession(){
                 setSession(newSession);
         });
         
-        return () => subscription.unsubscribe;
+        return () => subscription.unsubscribe();
     }, []);
 
     return { session, loading }; 

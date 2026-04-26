@@ -1,5 +1,5 @@
 /* --Imports-- */
-import { useState, useRef } from "react";                               // React core hooks
+import { useState, useEffect, useRef } from "react";                    // React core hooks
 import { useNavigate } from "react-router-dom";                         // Routing
 import { LuImage, LuMap, LuUserPlus, LuTable, LuCoins, 
          LuChartBar, } from "react-icons/lu";                           // Lucide Icons
@@ -11,6 +11,10 @@ import Modal from "../components/Modal";                                // gener
 import TopBar from "../components/TopBar";                              // Top Nav
 import MapCanvas from "../components/MapCanvas";                        // Konva canvas
 import ZoomPill from "../components/ZoomPill";                          // Hover ZoomPill
+import InitiativeTracker from "../components/InitiativeTracker";        // Initiative panel
+import AddParticipantForm from "../components/AddParticipantForm";      // Add character form
+import ParticipantSheet from "../components/ParticipantSheet";          // Selected participant sheet
+import { CombatTracker } from "../services/combatTracker";              // Combat tracker service
 
 function VTT() {
 /* --States-- */    
@@ -18,6 +22,95 @@ function VTT() {
     const mapCanvasRef = useRef(null);
     const [backgroundUrl, setBackgroundUrl] = useState(null);           // URL of currently selected map image
     const [openModal, setOpenModal] = useState(null);                   // Which modal is open
+
+    const [participants, setParticipants] = useState([]);
+    const [initiativeQueue, setInitiativeQueue] = useState([]);
+    const [combatActive, setCombatActive] = useState(false);
+    const [selectedParticipant, setSelectedParticipant] = useState(null);
+    const combatRef = useRef(null);
+
+    // Pull the current ordered participant list out of the CombatTracker queue,
+    // carrying the rolled initiative total so the UI can display and edit it.
+    function syncQueue() {
+        if (combatRef.current) {
+            setInitiativeQueue(
+                combatRef.current.queue.map(e => ({ ...e.entity, initiativeTotal: e.total }))
+            );
+        }
+    }
+
+    function handleAddParticipant(participant) {
+        setParticipants(prev => [...prev, participant]);
+    }
+
+    function handleRemoveParticipant(id) {
+        setParticipants(prev => {
+            const next = prev.filter(p => p.id !== id);
+            if (next.length === 0) {
+                setCombatActive(false);
+                setInitiativeQueue([]);
+                combatRef.current = null;
+                return next;
+            }
+            return next;
+        });
+        if (combatRef.current) {
+            combatRef.current.queue = combatRef.current.queue.filter(e => e.entity.id !== id);
+            syncQueue();
+        } else {
+            setInitiativeQueue(prev => prev.filter(p => p.id !== id));
+        }
+        setSelectedParticipant(null);
+    }
+
+    function updateHp(id, calc) {
+        setParticipants(prev =>
+            prev.map(p => p.id === id ? { ...p, hit_points: calc(p) } : p)
+        );
+        if (combatRef.current) {
+            combatRef.current.queue.forEach(entry => {
+                if (entry.entity.id === id) {
+                    entry.entity = { ...entry.entity, hit_points: calc(entry.entity) };
+                }
+            });
+            syncQueue();
+        } else {
+            setInitiativeQueue(prev =>
+                prev.map(p => p.id === id ? { ...p, hit_points: calc(p) } : p)
+            );
+        }
+        setSelectedParticipant(prev =>
+            prev?.id === id ? { ...prev, hit_points: calc(prev) } : prev
+        );
+    }
+
+    function handleDamage(id, amount) {
+        updateHp(id, p => Math.max(0, p.hit_points - amount));
+    }
+
+    function handleHeal(id, amount) {
+        updateHp(id, p => Math.min(p.data.hit_points, p.hit_points + amount));
+    }
+
+    function handleRoll() {
+        if (participants.length === 0) return;
+        combatRef.current = new CombatTracker(participants);
+        syncQueue();
+        setCombatActive(true);
+    }
+
+    function handleNextTurn() {
+        if (!combatRef.current) return;
+        combatRef.current.nextTurn();
+        syncQueue();
+    }
+
+    function handleAdjustInitiative(name, total) {
+        if (!combatRef.current) return;
+        combatRef.current.adjustInitiative(name, total);
+        syncQueue();
+    }
+
 /* --Constants-- */
    
     const iconButtonStyle = {                                           // Shared styling for all toolbar & pill icon buttons
@@ -45,7 +138,7 @@ function VTT() {
             case "map":
                 return <MapBackgroundPicker onSelect={setBackgroundUrl} />;
             case "person":
-                return <p>Coming Soon</p>;
+                return <AddParticipantForm onAdd={handleAddParticipant} />;
             case "table":
                 return (
                     <>
@@ -79,6 +172,28 @@ function VTT() {
             >
                 {/* Konva canvas: only renders once a map image has loaded */}
                 <MapCanvas ref={mapCanvasRef} backgroundUrl={backgroundUrl} />
+
+                {/* Initiative tracker overlay */}
+                <InitiativeTracker
+                    participants={participants}
+                    queue={initiativeQueue}
+                    combatActive={combatActive}
+                    onRoll={handleRoll}
+                    onNext={handleNextTurn}
+                    onSelect={setSelectedParticipant}
+                    onDamage={handleDamage}
+                    onHeal={handleHeal}
+                    onAdjustInitiative={handleAdjustInitiative}
+                />
+
+                {/* Participant sheet for selected character */}
+                <ParticipantSheet
+                    participant={selectedParticipant}
+                    onClose={() => setSelectedParticipant(null)}
+                    onRemove={handleRemoveParticipant}
+                    onDamage={handleDamage}
+                    onHeal={handleHeal}
+                />
 
                 {/* Right-side pill: loot + stats */}
                 <div
