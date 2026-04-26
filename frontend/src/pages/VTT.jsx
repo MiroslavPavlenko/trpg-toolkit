@@ -1,26 +1,27 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { LuImage, LuMap, LuUserPlus, LuTable, LuCoins, LuChartBar } from "react-icons/lu";
-import MonsterSearch from "../components/MonsterSearch";
-import EquipmentSearch from "../components/EquipmentSearch";
-import ImageUploader from "../components/ImageUploader";
-import MapBackgroundPicker from "../components/MapBackgroundPicker";
-import Modal from "../components/Modal";
-import TopBar from "../components/TopBar";
-import InitiativeTracker from "../components/InitiativeTracker";
-import AddParticipantForm from "../components/AddParticipantForm";
-import ParticipantSheet from "../components/ParticipantSheet";
-import { CombatTracker } from "../services/combatTracker";
+/* --Imports-- */
+import { useState, useEffect, useRef } from "react";                    // React core hooks
+import { useNavigate } from "react-router-dom";                         // Routing
+import { LuImage, LuMap, LuUserPlus, LuTable, LuCoins, 
+         LuChartBar, } from "react-icons/lu";                           // Lucide Icons
+import MonsterSearch from "../components/MonsterSearch";                // Table Look - Monster
+import EquipmentSearch from "../components/EquipmentSearch";            // Table Look - Equipment
+import ImageUploader from "../components/ImageUploader";                // Upload-image
+import MapBackgroundPicker from "../components/MapBackgroundPicker";    // Pick-Map
+import Modal from "../components/Modal";                                // generic modal
+import TopBar from "../components/TopBar";                              // Top Nav
+import MapCanvas from "../components/MapCanvas";                        // Konva canvas
+import ZoomPill from "../components/ZoomPill";                          // Hover ZoomPill
+import InitiativeTracker from "../components/InitiativeTracker";        // Initiative panel
+import AddParticipantForm from "../components/AddParticipantForm";      // Add character form
+import ParticipantSheet from "../components/ParticipantSheet";          // Selected participant sheet
+import { CombatTracker } from "../services/combatTracker";              // Combat tracker service
 
 function VTT() {
+/* --States-- */    
     const navigate = useNavigate();
-    const [backgroundUrl, setBackgroundUrl] = useState(null);
-    const [openModal, setOpenModal] = useState(null);
-    const [imgSize,setImgSize] = useState(null);
-    const [windowSize, setWindowSize] = useState({
-        width: window.innerWidth,
-        height: window.innerHeight,
-    });
+    const mapCanvasRef = useRef(null);
+    const [backgroundUrl, setBackgroundUrl] = useState(null);           // URL of currently selected map image
+    const [openModal, setOpenModal] = useState(null);                   // Which modal is open
 
     const [participants, setParticipants] = useState([]);
     const [initiativeQueue, setInitiativeQueue] = useState([]);
@@ -63,11 +64,9 @@ function VTT() {
     }
 
     function updateHp(id, calc) {
-        // Update in participants list
         setParticipants(prev =>
             prev.map(p => p.id === id ? { ...p, hit_points: calc(p) } : p)
         );
-        // Update the entity inside the CombatTracker queue, then sync
         if (combatRef.current) {
             combatRef.current.queue.forEach(entry => {
                 if (entry.entity.id === id) {
@@ -112,7 +111,9 @@ function VTT() {
         syncQueue();
     }
 
-    const iconButtonStyle = {
+/* --Constants-- */
+   
+    const iconButtonStyle = {                                           // Shared styling for all toolbar & pill icon buttons
         background: "transparent",
         border: "none",
         color: "white",
@@ -120,8 +121,8 @@ function VTT() {
         cursor: "pointer",
         padding: "8px",
     };
-
-    const modalTitles = {
+    
+    const modalTitles = {                                               // Title shown in the modal header for each modal type
         image: "Upload Image",
         map: "Set Map Background",
         person: "Add Character",
@@ -129,8 +130,8 @@ function VTT() {
         dollar: "Loot",
         chart: "Stats",
     };
-
-    const renderModalContent = () => {
+    
+    const renderModalContent = () => {                                  // Picks the body content for the modal based on which one is open
         switch (openModal) {
             case "image":
                 return <ImageUploader />;
@@ -153,57 +154,26 @@ function VTT() {
                 return null;
         }
     };
-
-    useEffect(()=>{
-        console.log("Window Size (width x height): ", window.innerWidth, "x", window.innerHeight);
-
-        if (!backgroundUrl){
-            setImgSize(null);
-            return;
-        } 
-
-        const img = new Image();
-        img.onload = () => {
-            console.log("Map Size(width x height): ", img.naturalWidth, "x", img.naturalHeight);
-            setImgSize({ width: img.naturalWidth, height: img.naturalHeight});
-        };
-        img.src = backgroundUrl;
-    }, [backgroundUrl]);
-
-    useEffect(()=>{
-        const handleResize = () => {
-            const newSize = { width: window.innerWidth, height: window.innerHeight };
-                console.log("Window Size (width x height): ", newSize.width, "x", newSize.height);
-            setWindowSize(newSize);
-        };
-
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
+   
+/* --Render-- */
     return (
+        /* Outer flex column: TopBar on top, canvas fills the rest*/
         <div style={{display: "flex", flexDirection: "column", height: "100vh"}}>
             <TopBar />
+           {/* Canvas area: holds the Konva Stage and floating toolbar pills */}
             <div
                 style={{
                     flex: 1,
-                    minHeight: 0, 
+                    minHeight: 0,
                     boxSizing: "border-box",
                     overflow: "hidden",
-                    padding: "40px",
-                    backgroundImage: 
-                        backgroundUrl 
-                        ? `url("${backgroundUrl}")` : "",
-                    backgroundSize:
-                        (imgSize 
-                        && imgSize.width >=windowSize.width
-                        && imgSize.height >= windowSize.height)
-                        ? "auto" : "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
+                    background: "#2a3439"
                 }}
             >
+                {/* Konva canvas: only renders once a map image has loaded */}
+                <MapCanvas ref={mapCanvasRef} backgroundUrl={backgroundUrl} />
+
+                {/* Initiative tracker overlay */}
                 <InitiativeTracker
                     participants={participants}
                     queue={initiativeQueue}
@@ -216,6 +186,7 @@ function VTT() {
                     onAdjustInitiative={handleAdjustInitiative}
                 />
 
+                {/* Participant sheet for selected character */}
                 <ParticipantSheet
                     participant={selectedParticipant}
                     onClose={() => setSelectedParticipant(null)}
@@ -224,6 +195,7 @@ function VTT() {
                     onHeal={handleHeal}
                 />
 
+                {/* Right-side pill: loot + stats */}
                 <div
                     style={{
                     position: "fixed",
@@ -254,6 +226,12 @@ function VTT() {
                     </button>
                 </div>
 
+                {/* Lower-right pill: zoom in / zoom out */}
+                <ZoomPill
+                    onZoomIn={() => mapCanvasRef.current?.zoomIn()}
+                    onZoomOut={() => mapCanvasRef.current?.zoomOut()}
+                />
+                {/* Bottom pill: image / map / character / lookup tables */}
                 <div
                     style={{
                         position: "fixed",
@@ -297,7 +275,7 @@ function VTT() {
                             <LuTable />
                         </button>
                 </div>
-
+                {/* Generic modal — body is fanned out by openModal value */}
                 <Modal
                     isOpen={openModal !== null}
                     onClose={() => setOpenModal(null)}

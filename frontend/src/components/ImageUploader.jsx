@@ -3,23 +3,21 @@
 // General-purpose — reusable for any feature that needs image uploads.
 
 import { useState } from "react";
-import { uploadImage } from "../services/vttStorage";   // CHANGED: dropped getSignedUrl import
+import { uploadImage } from "../services/vttStorage"; 
 
-// CHANGED: no more onSetBackground prop — that's the picker's job
 function ImageUploader() {
     const [bucket, setBucket] = useState("maps");
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState("");
 
-    // REMOVED: lastUpload state — uploader doesn't need to remember what it uploaded
 
     const handleUpload = async () => {
         if (!file) return;
         setUploading(true);
         setError("");
         try {
-            await uploadImage(bucket, file);    // CHANGED: don't capture the returned path anymore
+            await uploadImage(bucket, file);  
             setFile(null);
         } catch (err) {
             setError(err.message);
@@ -27,8 +25,6 @@ function ImageUploader() {
             setUploading(false);
         }
     };
-
-    // REMOVED: handleSetBackground handler — moved out of this component
 
     return (
         <div>
@@ -68,7 +64,6 @@ function ImageUploader() {
                 {uploading ? "Uploading..." : "Upload"}
             </button>
 
-            {/* REMOVED: the "Set as background" button block */}
 
             {error && (
                 <p style={{ color: "red", marginTop: "8px" }}>
