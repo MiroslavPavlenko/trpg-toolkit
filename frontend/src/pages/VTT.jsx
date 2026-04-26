@@ -1,8 +1,7 @@
 /* --Imports-- */
 import { useState, useEffect, useRef } from "react";                    // React core hooks
 import { useNavigate } from "react-router-dom";                         // Routing
-import { LuImage, LuMap, LuUserPlus, LuTable, LuCoins, 
-         LuChartBar, } from "react-icons/lu";                           // Lucide Icons
+import { CombatTracker } from "../services/combatTracker";              // Combat tracker service
 import MonsterSearch from "../components/MonsterSearch";                // Table Look - Monster
 import EquipmentSearch from "../components/EquipmentSearch";            // Table Look - Equipment
 import ImageUploader from "../components/ImageUploader";                // Upload-image
@@ -11,11 +10,11 @@ import Modal from "../components/Modal";                                // gener
 import TopBar from "../components/TopBar";                              // Top Nav
 import MapCanvas from "../components/MapCanvas";                        // Konva canvas
 import ZoomPill from "../components/ZoomPill";                          // Hover ZoomPill
+import RightPill from "../components/RightPill";                        // Right NavPill
+import BottomPill from "../components/BottomPill";                      // Bottom NavPill
 import InitiativeTracker from "../components/InitiativeTracker";        // Initiative panel
 import AddParticipantForm from "../components/AddParticipantForm";      // Add character form
 import ParticipantSheet from "../components/ParticipantSheet";          // Selected participant sheet
-import { CombatTracker } from "../services/combatTracker";              // Combat tracker service
-
 function VTT() {
 /* --States-- */    
     const navigate = useNavigate();
@@ -112,16 +111,6 @@ function VTT() {
     }
 
 /* --Constants-- */
-   
-    const iconButtonStyle = {                                           // Shared styling for all toolbar & pill icon buttons
-        background: "transparent",
-        border: "none",
-        color: "white",
-        fontSize: "2rem",
-        cursor: "pointer",
-        padding: "8px",
-    };
-    
     const modalTitles = {                                               // Title shown in the modal header for each modal type
         image: "Upload Image",
         map: "Set Map Background",
@@ -202,35 +191,10 @@ function VTT() {
                 />
 
                 {/* Right-side pill: loot + stats */}
-                <div
-                    style={{
-                    position: "fixed",
-                    right: "20px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px",
-                    background: "#222",
-                    padding: "12px 8px",
-                    borderRadius: "999px",
-                    border: "1px solid #444",}}
-                >
-                    <button
-                    onClick={() => setOpenModal("dollar")}
-                    style={iconButtonStyle}
-                    aria-label="loot"
-                    >
-                        <LuCoins />
-                    </button>
-                    <button
-                        onClick={() => setOpenModal("chart")}
-                        style={iconButtonStyle}
-                        aria-label="stats"
-                    >
-                        <LuChartBar />
-                    </button>
-                </div>
+                <RightPill
+                    onLoot={() => setOpenModal("dollar")}
+                    onStats={() => setOpenModal("chart")}
+                />
 
                 {/* Lower-right pill: zoom in / zoom out */}
                 <ZoomPill
@@ -238,49 +202,13 @@ function VTT() {
                     onZoomOut={() => mapCanvasRef.current?.zoomOut()}
                 />
                 {/* Bottom pill: image / map / character / lookup tables */}
-                <div
-                    style={{
-                        position: "fixed",
-                        bottom: "20px",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        display: "flex",
-                        gap: "8px",
-                        background: "#222",
-                        padding: "8px 16px",
-                        borderRadius: "999px",
-                        border: "1px solid #444",
+                <BottomPill
+                    onImage={() => setOpenModal("image")}
+                    onMap={() => setOpenModal("map")}
+                    onAddCharacter={() => setOpenModal("person")}
+                    onTable={() => setOpenModal("tables")}
+                />
 
-                    }}>
-                        <button
-                            onClick={() => setOpenModal("image")}
-                            style={iconButtonStyle}
-                            aria-label="image"
-                        >
-                            <LuImage />
-                        </button>
-                        <button
-                            onClick={() => setOpenModal("map")}
-                            style={iconButtonStyle}
-                            aria-label="map"
-                        >
-                            <LuMap />
-                        </button>
-                        <button
-                            onClick={() => setOpenModal("person")}
-                            style={iconButtonStyle}
-                            aria-label="add character"
-                        >
-                            <LuUserPlus />
-                        </button>
-                        <button
-                            onClick={() => setOpenModal("table")}
-                            style={iconButtonStyle}
-                            aria-label="lookup tables"
-                        >
-                            <LuTable />
-                        </button>
-                </div>
                 {/* Generic modal — body is fanned out by openModal value */}
                 <Modal
                     isOpen={openModal !== null}

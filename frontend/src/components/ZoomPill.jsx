@@ -1,20 +1,11 @@
 /* --Imports-- */
 import { useState } from "react";
 import { LuZoomIn, LuZoomOut } from "react-icons/lu";
+import "../style/PillButton.css";
 
 function ZoomPill({ onZoomIn, onZoomOut }) {
 /* --States-- */
     const [zoomPillOpen, setZoomPillOpen] = useState(false);
-
-/* --Constants-- */
-    const iconButtonStyle = {
-        background: "transparent",
-        border: "none",
-        color: "white",
-        fontSize: "2rem",
-        cursor: "pointer",
-        padding: "8px",
-    };
 
 /* --Render-- */
     return (
@@ -36,25 +27,17 @@ function ZoomPill({ onZoomIn, onZoomOut }) {
         >
             {zoomPillOpen ? (
                 <>
-                    <button
-                        onClick={onZoomIn}
-                        style={iconButtonStyle}
-                        aria-label="zoom in"
-                    >
+                    <button onClick={onZoomIn} className="icon-button" aria-label="zoom in">
                         <LuZoomIn />
                     </button>
-                    <button
-                        onClick={onZoomOut}
-                        style={iconButtonStyle}
-                        aria-label="zoom out"
-                    >
+                    <button onClick={onZoomOut} className="icon-button" aria-label="zoom out">
                         <LuZoomOut />
                     </button>
                 </>
             ) : (
                 <div
+                    className="icon-nutton"
                     style={{
-                        ...iconButtonStyle,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -67,7 +50,7 @@ function ZoomPill({ onZoomIn, onZoomOut }) {
                         height="1rem"
                         viewBox="0 0 24 24"
                         fill="none"
-                        stroke="currentColor"
+                        stroke="white"
                         strokeWidth="1"
                         strokeLinecap="round"
                         strokeLinejoin="round"
