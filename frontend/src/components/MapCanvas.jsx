@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Stage, Layer, Image as KonvaImage } from "react-konva";
+import { Stage, Layer, Image as KonvaImage, Line } from "react-konva";
 
 
-const MapCanvas = forwardRef(({ backgroundUrl }, ref) => {
+const MapCanvas = forwardRef(({ backgroundUrl, showGrid }, ref) => {
 /* --States-- */
     const stageRef = useRef(null);
     const containerRef = useRef(null);
@@ -12,6 +12,8 @@ const MapCanvas = forwardRef(({ backgroundUrl }, ref) => {
     
 /* --Constants-- */
     const SCALE_BY = 1.05;
+    const GRID_SIZE = 50;
+    const GRID_COLOR = "rgba(0,0,0,0.6)";
 
     const handleWheel = (e) =>{
         e.evt.preventDefault();
@@ -79,6 +81,16 @@ const MapCanvas = forwardRef(({ backgroundUrl }, ref) => {
     ) :1;
     const drawWidth = imgSize ? imgSize.width * scale : 0;
     const drawHeight = imgSize ? imgSize.height * scale: 0;
+
+    const gridLine = [];
+    if(imgSize) {
+        for (let x = 0; x <= drawWidth; x += GRID_SIZE){
+            gridLine.push({ points:[x, 0, x, drawHeight], key: `v${x}` });
+        }
+        for(let y = 0; y <= drawHeight; y+= GRID_SIZE){
+            gridLine.push({ points:[0, y, drawWidth, y], key: `h${y}` });
+        }
+    }
 
     const fitScale = imgSize && containerSize.width > 0 && drawWidth > 0
         ? Math.min(
@@ -167,6 +179,14 @@ const clampPosition = (pos, currentScale) => {
                 >
                     <Layer>
                         <KonvaImage image={imgElement} width={drawWidth} height ={drawHeight} />
+                        {showGrid && gridLine.map(line => (
+                            <Line
+                                key={line.key}
+                                points={line.points}
+                                stroke={GRID_COLOR}
+                                strokeWidth={2}
+                            />
+                        ))}
                     </Layer>
                 </Stage>
             )}

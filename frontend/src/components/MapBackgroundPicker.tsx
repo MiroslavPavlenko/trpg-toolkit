@@ -6,7 +6,9 @@ import { useState, useEffect } from "react";
 import { getSignedUrl, listImages } from "../services/vttStorage";
 
 type Props = {
-  onSelect: (url: string) => void;   // function the parent passes us, called with the chosen image URL
+    onSelect: (url: string) => void;   // function the parent passes us, called with the chosen image URL
+    showGrid: boolean;
+    onToggleGrid: () => void;
 };
 
 type MapItem = {
@@ -14,7 +16,7 @@ type MapItem = {
     url: string;
 };
 
-function MapBackgroundPicker({ onSelect }: Props) {
+function MapBackgroundPicker({ onSelect, showGrid, onToggleGrid }: Props) {
     const [maps, setMaps] = useState<MapItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -46,7 +48,20 @@ function MapBackgroundPicker({ onSelect }: Props) {
             <h2>
                 Maps
             </h2>
-
+            <button
+                onClick={onToggleGrid}
+                style={{
+                    marginBottom: "12px",
+                    padding: "6px 12px",
+                    background: showGrid ? "#3b82f6" : "#444",
+                    color: "white",
+                    border: "1px solid #666",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                }}
+            >
+                Grid: {showGrid ? "On" : "Off"}
+            </button>
             {loading && <p>Loading Maps...</p>}
             {error && <p style={{color: "red" }}>{error}</p>}
             {!loading && maps.length ===0 && (
