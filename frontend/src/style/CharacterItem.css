@@ -13,11 +13,11 @@
 }
 
 .character-item-player {
-  background: #c0392b;
+  background: #444;
 }
 
 .character-item-enemy {
-  background: #444;
+  background: #c0392b;
 }
 
 .character-item-active {
