@@ -22,7 +22,7 @@ function MapBackgroundPicker({ onSelect }: Props) {
     useEffect(() => {
         const loadMaps = async () => {
             try {
-                const names = await listImages("maps");
+                const names = (await listImages("maps")).filter(n => !n.startsWith("."));
                 const items = await Promise.all(
                     names.map(async (name) => ({
                         name,
