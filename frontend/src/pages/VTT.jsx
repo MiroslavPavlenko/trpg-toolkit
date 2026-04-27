@@ -223,10 +223,7 @@ function VTT() {
                 />
 
                 {/* Right-side pill: loot + stats */}
-                <PillRight
-                    onLoot={() => setOpenModal("dollar")}
-                    onStats={() => setOpenModal("chart")}
-                />
+                
 
                 {/* Lower-right pill: map control */}
                 <PillMapContorl>
@@ -246,16 +243,20 @@ function VTT() {
                         gridOffsetY={gridOffsetY}
                         onChangeGridOffsetY={setGridOffsetY}     
                     />
-                </PillMapContorl>
-
-                {/* Bottom pill: image / map / character / lookup tables */}
-                <PillBottom
+                    <PillRight
+                    onLoot={() => setOpenModal("dollar")}
+                    onStats={() => setOpenModal("chart")}
+                    />
+                     <PillBottom
                     onImage={() => setOpenModal("image")}
                     onMap={() => setOpenModal("map")}
                     onAddCharacter={() => setOpenModal("person")}
                     onTables={() => setOpenModal("tables")}
                 />
+                </PillMapContorl>
 
+                {/* Bottom pill: image / map / character / lookup tables */}
+               
                 {/* Generic modal — body is fanned out by openModal value */}
                 <Modal
                     isOpen={openModal !== null}

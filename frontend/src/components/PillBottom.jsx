@@ -1,34 +1,57 @@
-import { LuImage,LuMap, LuUserPlus, LuTable} from "react-icons/lu"
+import { useState } from "react";
+import { LuImage, LuMap, LuUserPlus, LuTable, LuPlus } from "react-icons/lu";
 import "../style/PillButton.css";
 
-function PillBottom({ onImage, onMap, onAddCharacter, onTables }){
+function PillBottom({ onImage, onMap, onAddCharacter, onTables }) {
+    const [open, setOpen] = useState(false);
+
     return (
         <div
+            onMouseEnter={() => setOpen(true)}
+            onMouseLeave={() => setOpen(false)}
             style={{
-                position: "fixed",
-                bottom: "20px",
-                left: "50%",
-                transform: "translateX(-50%)",
+                position: "relative",
                 display: "flex",
-                gap: "8px",
-                background: "#222",
-                padding: "8px 16px",
-                borderRadius: "999px",
-                border: "1px solid #444",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "1em",
+                height: "1em",
             }}
         >
-            <button onClick={onImage} className="icon-button" aria-label="image">
-                <LuImage />
-            </button>
-            <button onClick={onMap} className="icon-button" aria-label="map">
-                <LuMap />
-            </button>
-            <button onClick={onAddCharacter} className="icon-button" aria-label="add character">
-                <LuUserPlus />
-            </button>
-            <button onClick={onTables} className="icon-button" aria-label="Lookup Tables">
-                <LuTable />
-            </button>
+            {open && (
+                <div
+                    style={{
+                        position: "absolute",
+                        right: "100%",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "8px",
+                        alignItems: "center",
+                        background: "#222",
+                        border: "1px solid #444",
+                        borderRadius: "999px",
+                        padding: "8px 16px",
+                        color: "#eee",
+                        whiteSpace: "nowrap",
+                    }}
+                >
+                    <button onClick={onImage} className="icon-button" aria-label="image">
+                        <LuImage />
+                    </button>
+                    <button onClick={onMap} className="icon-button" aria-label="map">
+                        <LuMap />
+                    </button>
+                    <button onClick={onAddCharacter} className="icon-button" aria-label="add character">
+                        <LuUserPlus />
+                    </button>
+                    <button onClick={onTables} className="icon-button" aria-label="Lookup Tables">
+                        <LuTable />
+                    </button>
+                </div>
+            )}
+            <LuPlus />
         </div>
     );
 }
