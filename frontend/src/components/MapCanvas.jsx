@@ -1,13 +1,52 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Stage, Layer, Image as KonvaImage, Line } from "react-konva";
+import { Stage, Layer, Image as KonvaImage, Line, Group, Circle, Text } from "react-konva";
 
+function cellToPixel(cellX, cellY, gridSize, gridOffsetX, gridOffsetY) {
+    const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
+    const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
+    return {
+        x: offX + cellX * gridSize + gridSize / 2,
+        y: offY + cellY * gridSize + gridSize / 2,
+    }
+}
+function pixelToCell(px, py, gridSize, gridOffsetX, gridOffsetY){
+    const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
+    const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
+    return {
+        x: Math.round((px - offX - gridSize / 2) / gridSize),
+        y: Math.round((py - offY - gridSize / 2) / gridSize),
+    };
+}
+function snapToCenter(px, py, size,gridSize, gridOffsetX, gridOffsetY){
+    const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
+    const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
+    const col = Math.round((px - offX - (size * gridSize) / 2) / gridSize);
+    const row = Math.round((py - offY - (size * gridSize) / 2) / gridSize);
+    return{
+        col,
+        row,
+        x: offX + col * gridSize + (size * gridSize) / 2,
+        y: offY + row * gridSize + (size * gridSize) / 2,
+    };
+}
 
+function tokensOverLap(aCell, aSize, bCell, bSize){
+    return (
+        aCell.x < bCell.x + bSize &&
+        aCell.x + aSize > bCell.x &&
+        aCell.y < bCell.y + bSize &&
+        aCell.y + aSize > bCell.y
+    );
+}
 const MapCanvas = forwardRef(({ 
     backgroundUrl,
     showGrid,
     gridSize = 50,
     gridOffsetX = 0,
     gridOffsetY = 0,
+    participants = [],
+    onMapReady,
+    onMoveToken,
 }, ref) => {
 /* --States-- */
     const stageRef = useRef(null);
@@ -93,9 +132,11 @@ const MapCanvas = forwardRef(({
         const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
 
         for (let x = offX; x <= drawWidth; x += gridSize){
+            const px = Math.round(x);
             gridLine.push({ points:[x, 0, x, drawHeight], key: `v${x}` });
         }
         for(let y = offY; y <= drawHeight; y+= gridSize){
+            const py = Math.round(y);
             gridLine.push({ points:[0, y, drawWidth, y], key: `h${y}` });
         }
     }
@@ -120,7 +161,7 @@ const clampPosition = (pos, currentScale) => {
         ? Math.min(0, Math.max(containerSize.height - scaledHeight, pos.y))
         : (containerSize.height - scaledHeight) / 2;
 
-    return { x, y };
+    return { x:Math.round(x), y:Math.round(y) };
 };
 
     
@@ -162,11 +203,18 @@ const clampPosition = (pos, currentScale) => {
         if (imgSize && stageRef.current){
             stageRef.current.scale({ x:1, y: 1 });
             stageRef.current.position({
-                x: (containerSize.width - drawWidth) / 2,
-                y: (containerSize.height - drawHeight) / 2,
+                x: Math.round(containerSize.width - drawWidth) / 2,
+                y: Math.round(containerSize.height - drawHeight) / 2,
             });
         }
     }, [imgElement]);
+
+    useEffect(()=> {
+        if (!imgSize || !gridSize || !onMapReady) return;
+        const width = Math.floor(drawWidth / gridSize);
+        const height = Math.floor(drawHeight/ gridSize);
+        onMapReady({ width,height });
+    } , [imgSize, drawWidth, drawHeight, gridSize, onMapReady]);
 
     /* --Render-- */
     return(
@@ -195,6 +243,85 @@ const clampPosition = (pos, currentScale) => {
                                 strokeWidth={2}
                             />
                         ))}
+
+                        {participants.map(p => {
+                            if(!p.cell){
+                                return null;
+                            }
+                            const size = p.size ?? 1;
+                            const centerX = p.cell.x + (size - 1) / 2;
+                            const centerY = p.cell.y + (size - 1) / 2;
+                            const { x, y } = cellToPixel(centerX, centerY, gridSize, gridOffsetX, gridOffsetY);
+                            const renderX = Math.round(x);
+                            const renderY = Math.round(y);
+                            const radius = (size * gridSize) * 0.4;
+                            const fontSize = Math.max(10, gridSize / 5);
+
+                            const mapCols = Math.floor(drawWidth / gridSize);
+                            const mapRows = Math.floor(drawHeight / gridSize);
+
+                            return(
+                                <Group 
+                                    key={p.id}
+                                    x={renderX}
+                                    y={renderY}
+                                    draggable
+                                    onDragStart={(e) => { e.cancelBubble = true; }}
+                                    dragBoundFunc={(pos) => {
+                                        const snapped = snapToCenter(
+                                            pos.x, pos.y, size, gridSize, gridOffsetX, gridOffsetY
+                                        );
+                                        const clampedCol = Math.max(0, Math.min(mapCols - size, snapped.col));
+                                        const clampedRow = Math.max(0, Math.min(mapRows - size, snapped.row));
+                                        const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
+                                        const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
+
+                                        return {
+                                            x: offX + clampedCol * gridSize + (size * gridSize) / 2,
+                                            y: offY + clampedRow * gridSize + (size * gridSize) / 2,
+                                        }
+
+                                    }}
+                                    onDragEnd={(e)=>{
+                                        const dropX = e.target.x();
+                                        const dropY = e.target.y();
+                                        const snapped = snapToCenter(
+                                            dropX, dropY, size, gridSize, gridOffsetX, gridOffsetY
+                                        );
+                                        const newCell= {x: snapped.col, y: snapped.row};
+                                        
+                                        const occupied = participants.some(other =>
+                                            other.id !== p.id &&
+                                            other.cell &&
+                                            tokensOverLap(newCell, size, other.cell, other.size ?? 1)
+                                        );
+                                        
+                                        if(occupied) {
+                                            e.target.position({ x, y });
+                                            return;
+                                        }
+                                        
+                                        onMoveToken?.(p.id, newCell);
+                                    }}
+                                >
+                                    <Circle
+                                        radius={radius}
+                                        fill={p.type === "monster" ? "#dd1414": "#3498db"}
+                                        stroke="black"
+                                        strokeWidth={1}
+                                    />
+                                    <Text
+                                        text={p.name}
+                                        fontSize={fontSize}
+                                        fill="white"
+                                        align="center"
+                                        width={size * gridSize}
+                                        offsetX = {(size * gridSize) / 2}
+                                        offsetY={-radius-4}
+                                    />
+                                </Group>
+                            );
+                        })}
                     </Layer>
                 </Stage>
             )}

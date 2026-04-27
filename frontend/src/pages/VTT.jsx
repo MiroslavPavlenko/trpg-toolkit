@@ -17,6 +17,7 @@ import PillBottom from "../components/PillBottom";                      // Botto
 import InitiativeTracker from "../components/InitiativeTracker";        // Initiative panel
 import AddParticipantForm from "../components/AddParticipantForm";      // Add character form
 import ParticipantSheet from "../components/ParticipantSheet";          // Selected participant sheet
+import { AiFillThunderbolt } from "react-icons/ai";
 function VTT() {
 /* --States-- */    
     const navigate = useNavigate();
@@ -33,6 +34,7 @@ function VTT() {
     const [selectedParticipant, setSelectedParticipant] = useState(null);
     const [gridOffsetX, setGridOffsetX] = useState(0);
     const [gridOffsetY, setGridOffsetY] = useState(0);
+    const [mapInfo, setMapInfo] =useState(0); //{ x, y }
 
     // Pull the current ordered participant list out of the CombatTracker queue,
     // carrying the rolled initiative total so the UI can display and edit it.
@@ -42,10 +44,6 @@ function VTT() {
                 combatRef.current.queue.map(e => ({ ...e.entity, initiativeTotal: e.total }))
             );
         }
-    }
-
-    function handleAddParticipant(participant) {
-        setParticipants(prev => [...prev, participant]);
     }
 
     function handleRemoveParticipant(id) {
@@ -116,6 +114,22 @@ function VTT() {
         syncQueue();
     }
 
+    function handleAddParticipant(participant){
+        const size = participant.size ?? 1;
+        const cell = mapInfo
+        ? {
+            x: Math.max(0, Math.min(mapInfo.width - size, Math.floor(mapInfo.width /2 ) - Math.floor(size /2))),
+            y: Math.max(0, Math.min(mapInfo.height - size, Math.floor(mapInfo.height /2 ) - Math.floor(size /2))),
+        }
+        : {x:0, y:0};
+        setParticipants(prev => [...prev, { ...participant, cell}]);
+    }
+
+    function handleMoveToken(id, cell){
+        setParticipants(prev =>
+            prev.map(p => p.id === id ? {...p, cell} : p)
+        );
+    }
 /* --Constants-- */
     const modalTitles = {                                               // Title shown in the modal header for each modal type
         image: "Upload Image",
@@ -181,6 +195,9 @@ function VTT() {
                     gridSize={gridSize}
                     gridOffsetX={gridOffsetX}
                     gridOffsetY={gridOffsetY}
+                    participants={participants}
+                    onMapReady={setMapInfo}
+                    onMoveToken={handleMoveToken}
                 />
 
                 {/* Initiative tracker overlay */}
