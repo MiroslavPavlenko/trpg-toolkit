@@ -22,7 +22,7 @@ function PillBottom({ onImage, onMap, onAddCharacter, onTables }) {
                 <div
                     style={{
                         position: "absolute",
-                        right: "100%",
+                        right: "0%",
                         top: "50%",
                         transform: "translateY(-50%)",
                         display: "flex",
