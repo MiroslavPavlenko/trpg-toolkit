@@ -1,5 +1,5 @@
 /* --Imports-- */
-import { useState, useRef } from "react";                    // React core hooks
+import { useState, useRef, useEffect } from "react";                    // React core hooks
 import { useNavigate } from "react-router-dom";                         // Routing
 import { CombatTracker } from "../services/combatTracker";              // Combat tracker service
 import MonsterSearch from "../components/MonsterSearch";                // Table Look - Monster
@@ -13,7 +13,8 @@ import PillMapContorl from "../components/PillMapContorl";
 import PillGrid from "../components/PillGrid";                      
 import PillZoom from "../components/PillZoom";                          // Hover ZoomPill
 import PillRight from "../components/PillRight";                        // Right NavPill
-import PillBottom from "../components/PillBottom";                      // Bottom NavPill
+import PillBottom from "../components/PillBottom";       
+import PillMeasure from "../components/PillMeasure";               // Bottom NavPill
 import InitiativeTracker from "../components/InitiativeTracker";        // Initiative panel
 import AddParticipantForm from "../components/AddParticipantForm";      // Add character form
 import ParticipantSheet from "../components/ParticipantSheet";          // Selected participant sheet
@@ -34,7 +35,19 @@ function VTT() {
     const [selectedParticipant, setSelectedParticipant] = useState(null);
     const [gridOffsetX, setGridOffsetX] = useState(0);
     const [gridOffsetY, setGridOffsetY] = useState(0);
+    const [measureMode, setMeasureMode] = useState(null);
     const [mapInfo, setMapInfo] =useState(0); //{ x, y }
+
+    useEffect(() => {
+    const handleKeyDown = (e) => {
+        if (e.key === "Escape" && measureMode !== null) {
+            setMeasureMode(null);
+        }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+}, [measureMode]);
+
 
     // Pull the current ordered participant list out of the CombatTracker queue,
     // carrying the rolled initiative total so the UI can display and edit it.
@@ -198,6 +211,7 @@ function VTT() {
                     participants={participants}
                     onMapReady={setMapInfo}
                     onMoveToken={handleMoveToken}
+                    measureMode={measureMode}
                 />
 
                 {/* Initiative tracker overlay */}
@@ -231,6 +245,10 @@ function VTT() {
                         onZoomIn={() => mapCanvasRef.current?.zoomIn()}
                         onZoomOut={() => mapCanvasRef.current?.zoomOut()}
                     />
+                    <PillMeasure 
+                        measureMode={measureMode}
+                        onSetMeasureMode={setMeasureMode}
+                    />
                     <PillGrid 
                         showGrid={showGrid}
                         onToggleGrid={() => setShowGrid(g => !g)}
@@ -252,7 +270,7 @@ function VTT() {
                     onMap={() => setOpenModal("map")}
                     onAddCharacter={() => setOpenModal("person")}
                     onTables={() => setOpenModal("tables")}
-                />
+                    />
                 </PillMapContorl>
 
                 {/* Bottom pill: image / map / character / lookup tables */}

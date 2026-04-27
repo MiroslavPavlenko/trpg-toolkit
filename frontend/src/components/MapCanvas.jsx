@@ -1,21 +1,27 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Stage, Layer, Image as KonvaImage, Line, Group, Circle, Text } from "react-konva";
+import { Stage, Layer, Image as KonvaImage, Line, Group, Circle, Text, Label, Tag, Rect  } from "react-konva";
 
 function cellToPixel(cellX, cellY, gridSize, gridOffsetX, gridOffsetY) {
     const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
     const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
     return {
-        x: offX + cellX * gridSize + gridSize / 2,
-        y: offY + cellY * gridSize + gridSize / 2,
+        x: Math.round(offX + cellX * gridSize + gridSize / 2),
+        y: Math.round(offY + cellY * gridSize + gridSize / 2),
     }
 }
-function pixelToCell(px, py, gridSize, gridOffsetX, gridOffsetY){
-    const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
-    const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
-    return {
-        x: Math.round((px - offX - gridSize / 2) / gridSize),
-        y: Math.round((py - offY - gridSize / 2) / gridSize),
-    };
+
+function parseMeasureMode(mode) {
+    if (!mode) return null;
+    const [kind, sizePart] = mode.split("-");
+    if (kind === "distance") return { kind };
+    if (kind === "square" || kind === "circle" || kind === "cone") {
+        return { kind, size: parseInt(sizePart, 10) };
+    }
+    if (kind === "line") {
+        const [length, width] = sizePart.split("x").map((n) => parseInt(n, 10));
+        return { kind, length, width };
+    }
+    return null;
 }
 function snapToCenter(px, py, size,gridSize, gridOffsetX, gridOffsetY){
     const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
@@ -47,6 +53,7 @@ const MapCanvas = forwardRef(({
     participants = [],
     onMapReady,
     onMoveToken,
+    measureMode,
 }, ref) => {
 /* --States-- */
     const stageRef = useRef(null);
@@ -54,6 +61,10 @@ const MapCanvas = forwardRef(({
     const [containerSize, setContainerSize] = useState({width: 0, height: 0 });
     const [imgSize, setImgSize] = useState(null);                                           // { width, height } of the loaded map's natural pixels
     const [imgElement, setImgElement] = useState(null);         // HTMLImageElement handed to <KonvaImage>
+    const [measureLine, setMeasureLine] = useState(null);
+    const [shapePos, setShapePos] = useState(null);
+    const [shapeRotation, setShapeRotation] = useState(0);
+    const [shapeAimMode, setShapeAimMode] = useState("moving");
     
 /* --Constants-- */
     const SCALE_BY = 1.05;
@@ -63,7 +74,8 @@ const MapCanvas = forwardRef(({
         e.evt.preventDefault();
 
         const stage = stageRef.current;
-        if (!stage) return;
+        if (!stage)
+            return;
 
         const oldScale = stage.scaleX();
         const pointer = stage.getPointerPosition();
@@ -109,6 +121,72 @@ const MapCanvas = forwardRef(({
             x: center.x - centerPointTo.x * newScale,
             y: center.y - centerPointTo.y * newScale,
         }, newScale));
+    };
+
+    const getStagePointerPos = () => {
+        const stage = stageRef.current;
+        if (!stage)
+            return null;
+        const pointer = stage.getPointerPosition();
+        if (!pointer)
+            return null;
+        const scale = stage.scaleX();
+        return {
+            x: (pointer.x - stage.x()) / scale,
+            y: (pointer.y - stage.y()) / scale,
+        };
+    };
+
+    const handleMeasureClick = () => {
+        if (measureMode === "distance") {
+            const pos = getStagePointerPos();
+            if (!pos) return;
+            setMeasureLine({ anchor: pos, end: pos });
+            return;
+        }
+
+        if (
+            measureMode &&
+            (measureMode.startsWith("cone-") || measureMode.startsWith("line-"))
+        ) {
+            setShapeAimMode((prev) => (prev === "moving" ? "rotating" : "moving"));
+        }
+    };
+
+    const handleMeasureMouseMove = () => {
+        const pos = getStagePointerPos();
+    if (!pos)
+        return;
+
+    if (measureMode === "distance") {
+        if (measureLine) {
+            setMeasureLine((prev) => (prev ? { ...prev, end: pos } : null));
+        }
+        return;
+    }
+
+    if ( measureMode && (measureMode.startsWith("square-") || measureMode.startsWith("circle-"))) {
+        setShapePos(pos);
+        return;
+    }
+
+    if ( measureMode && (measureMode.startsWith("cone-") || measureMode.startsWith("line-"))) {
+        if (shapeAimMode === "moving" || !shapePos) {
+            setShapePos(pos);
+        }
+        else {
+            // rotating: angle from origin to cursor
+            const angle = Math.atan2(pos.y - shapePos.y, pos.x - shapePos.x);
+            setShapeRotation(angle);
+        }
+    }
+};
+
+    const handleMeasureContextMenu = (e) => {
+        if (measureMode !== "distance")
+            return;
+        e.evt.preventDefault();
+        setMeasureLine(null);
     };
 
     useImperativeHandle(ref, ()=> ({
@@ -216,16 +294,37 @@ const clampPosition = (pos, currentScale) => {
         onMapReady({ width,height });
     } , [imgSize, drawWidth, drawHeight, gridSize, onMapReady]);
 
+    useEffect(() => {
+        if (measureMode !== "distance") {
+            setMeasureLine(null);
+        }
+        const isShape = measureMode && (measureMode.startsWith("square-") || measureMode.startsWith("circle-") || measureMode.startsWith("cone-") || measureMode.startsWith("line-"));
+        if (!isShape) {
+            setShapePos(null);
+        }
+        setShapeAimMode("moving");
+        setShapeRotation(0);
+    }, [measureMode]);
+
     /* --Render-- */
     return(
-        <div ref={containerRef} style={{width: "100%", height: "100%"}}>
+        <div ref={containerRef} 
+            style={{
+                width: "100%",
+                height: "100%",
+                cursor: measureMode ? "crosshair" : "default",
+            }}>
             {imgElement && (
                 <Stage
                     ref={stageRef}
                     width={containerSize.width}
                     height={containerSize.height}
-                    draggable
+                    draggable = {measureMode === null}
                     onWheel={handleWheel}
+                    onClick={handleMeasureClick}
+                    onTap={handleMeasureClick}
+                    onMouseMove={handleMeasureMouseMove}
+                    onContextmenu={handleMeasureContextMenu}
                     dragBoundFunc={(pos)=>{
                         const stage = stageRef.current;
                         const currentScale = stage ? stage.scaleX() : 1;
@@ -265,7 +364,7 @@ const clampPosition = (pos, currentScale) => {
                                     key={p.id}
                                     x={renderX}
                                     y={renderY}
-                                    draggable
+                                    draggable={measureMode === null}
                                     onDragStart={(e) => { e.cancelBubble = true; }}
                                     dragBoundFunc={(pos) => {
                                         const snapped = snapToCenter(
@@ -322,7 +421,146 @@ const clampPosition = (pos, currentScale) => {
                                 </Group>
                             );
                         })}
-                    </Layer>
+
+                        {measureLine && gridSize > 0 && (() => {
+                            const dx = measureLine.end.x - measureLine.anchor.x;
+                            const dy = measureLine.end.y - measureLine.anchor.y;
+                            const lengthPx = Math.sqrt(dx * dx + dy * dy);
+                            const lengthFt = (lengthPx * 5) / gridSize;
+                            const midX = (measureLine.anchor.x + measureLine.end.x) / 2;
+                            const midY = (measureLine.anchor.y + measureLine.end.y) / 2;
+
+                            return (
+                                <>
+                                    <Line
+                                        points={[
+                                            measureLine.anchor.x,
+                                            measureLine.anchor.y,
+                                            measureLine.end.x,
+                                            measureLine.end.y,
+                                        ]}
+                                        stroke="#3498db"
+                                        strokeWidth={3}
+                                        dash={[10, 6]}
+                                        listening={false}
+                                    />
+                                    <Label x={midX} y={midY} listening={false}>
+                                        <Tag fill="rgba(34, 34, 34, 0.9)" cornerRadius={4} />
+                                        <Text
+                                            text={`${lengthFt.toFixed(1)} ft`}
+                                            padding={6}
+                                            fontSize={14}
+                                            fill="white"
+                                            fontStyle="bold"
+                                        />
+                                    </Label>
+                                </>
+                            );
+                        })()}                                        
+
+                        {shapePos && gridSize > 0 && (() => {
+                            const parsed = parseMeasureMode(measureMode);
+                            if (!parsed) return null;
+
+                            const fillColor = "rgba(52, 152, 219, 0.3)";
+                            const strokeColor = "#3498db";
+                            const rotationDeg = (shapeRotation * 180) / Math.PI;
+
+                            if (parsed.kind === "square") {
+                                const sidePx = (parsed.size * gridSize) / 5;
+                                return (
+                                    <Rect
+                                        x={shapePos.x - sidePx / 2}
+                                        y={shapePos.y - sidePx / 2}
+                                        width={sidePx}
+                                        height={sidePx}
+                                        fill={fillColor}
+                                        stroke={strokeColor}
+                                        strokeWidth={2}
+                                        listening={false}
+                                    />
+                                );
+                            }
+
+                            if (parsed.kind === "circle") {
+                                const radiusPx = (parsed.size * gridSize) / 5;
+                                return (
+                                    <Circle
+                                        x={shapePos.x}
+                                        y={shapePos.y}
+                                        radius={radiusPx}
+                                        fill={fillColor}
+                                        stroke={strokeColor}
+                                        strokeWidth={2}
+                                        listening={false}
+                                    />
+                                );
+                            }
+
+                            if (parsed.kind === "cone") {
+                                // D&D 5e cone: at distance L from origin, the cone is L wide
+                                const lengthPx = (parsed.size * gridSize) / 5;
+                                const halfWidth = lengthPx / 2;
+                                return (
+                                    <>
+                                        <Line
+                                            points={[
+                                                0, 0,                    // origin
+                                                lengthPx, -halfWidth,    // top corner
+                                                lengthPx, halfWidth,     // bottom corner
+                                            ]}
+                                            x={shapePos.x}
+                                            y={shapePos.y}
+                                            rotation={rotationDeg}
+                                            closed
+                                            fill={fillColor}
+                                            stroke={strokeColor}
+                                            strokeWidth={2}
+                                            listening={false}
+                                        />
+                                        <Circle
+                                            x={shapePos.x}
+                                            y={shapePos.y}
+                                            radius={4}
+                                            fill={shapeAimMode === "rotating" ? "#e67e22" : strokeColor}
+                                            listening={false}
+                                        />
+                                    </>
+                                );
+                            }
+
+                            if (parsed.kind === "line") {
+                                const lengthPx = (parsed.length * gridSize) / 5;
+                                const widthPx = (parsed.width * gridSize) / 5;
+                                return (
+                                    <>
+                                        <Rect
+                                            x={shapePos.x}
+                                            y={shapePos.y}
+                                            width={lengthPx}
+                                            height={widthPx}
+                                            offsetY={widthPx / 2}
+                                            rotation={rotationDeg}
+                                            fill={fillColor}
+                                            stroke={strokeColor}
+                                            strokeWidth={2}
+                                            listening={false}
+                                        />
+                                        <Circle
+                                            x={shapePos.x}
+                                            y={shapePos.y}
+                                            radius={4}
+                                            fill={shapeAimMode === "rotating" ? "#e67e22" : strokeColor}
+                                            listening={false}
+                                        />
+                                    </>
+                                );
+                            }
+
+                            return null;
+                        })()}
+
+                    </Layer> 
                 </Stage>
             )}
         </div>
