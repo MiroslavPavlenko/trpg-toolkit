@@ -3,16 +3,15 @@ import { fetchDndMonster } from "../services/dndMonsterSearch";
 
 function AddParticipantForm({ onAdd }) {
   const [tab, setTab] = useState("monster");
-
   const [query, setQuery] = useState("");
   const [monster, setMonster] = useState(null);
   const [monsterError, setMonsterError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [playerName, setPlayerName] = useState("");
   const [playerDex, setPlayerDex] = useState(10);
   const [playerHp, setPlayerHp] = useState(20);
   const [playerInitiative, setPlayerInitiative] = useState("");
+  
   function sizeToCells(sizeStr) {
     switch (sizeStr) {
         case "Tiny":       

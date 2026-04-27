@@ -3,12 +3,14 @@ import { LuSettings2 } from "react-icons/lu";
 import "../style/PillButton.css"
 
 function PillMapContorl({ children}){
-    const [open, setOpen] = useState(false);
+    const [locked, setLocked] = useState(false);
+    const [hovered, setHovered] = useState(false);
+    const open = locked || hovered;
 
     return(
         <div
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => setOpen(false)}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
             style={{
                 position: "fixed",
                 right: "20px",
@@ -28,16 +30,24 @@ function PillMapContorl({ children}){
             }}
         >
            {open && children}
-            <div
+            <button
+                onClick={() => setLocked(prev => !prev)}
+                aria-label="map controls"
                 style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    background: "transparent",
+                    border: locked ? "1px solid #888" : "1px solid transparent",
+                    borderRadius: "999px",
+                    padding: "4px",
+                    color: "#eee",
+                    cursor: "pointer",
+                    fontSize: "inherit",
                 }}
-                aria-label="map controls"
             >
                 <LuSettings2 />
-            </div>
+            </button>
         </div>
     );
 }
