@@ -13,6 +13,17 @@ function AddParticipantForm({ onAdd }) {
   const [playerDex, setPlayerDex] = useState(10);
   const [playerHp, setPlayerHp] = useState(20);
   const [playerInitiative, setPlayerInitiative] = useState("");
+  function sizeToCells(sizeStr) {
+    switch (sizeStr) {
+        case "Tiny":       
+        case "Small":      
+        case "Medium":     return 1;
+        case "Large":      return 2;
+        case "Huge":       return 3;
+        case "Gargantuan": return 4;
+        default:           return 1;
+    }
+  }
 
   async function handleMonsterSearch(e) {
     e.preventDefault();
@@ -38,7 +49,9 @@ function AddParticipantForm({ onAdd }) {
       type: "monster",
       dexterity: monster.dexterity,
       hit_points: monster.hit_points,
+      size: sizeToCells(monster.size),
       data: monster,
+      
     });
     setMonster(null);
     setQuery("");
@@ -57,6 +70,7 @@ function AddParticipantForm({ onAdd }) {
       name: player.name,
       type: "player",
       dexterity: player.dexterity,
+      size: 1,
       hit_points: player.hit_points,
       ...(playerInitiative !== "" && { initiative_override: Number(playerInitiative) }),
       data: player,
