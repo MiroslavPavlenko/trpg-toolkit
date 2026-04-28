@@ -1,5 +1,5 @@
-// Simple mock monster data (can later be replaced with API data)
-const monsters = [
+// 5.0 mock monsters (used when 5.0 ruleset is selected)
+const mockMonsters = [
   { name: "Goblin", cr: 0.25, habitat: "Forest", type: "Humanoid", group: "Tribe" },
   { name: "Orc", cr: 0.5, habitat: "Mountain", type: "Humanoid", group: "Warband" },
   { name: "Skeleton", cr: 0.25, habitat: "Dungeon", type: "Undead", group: "Horde" },
@@ -7,45 +7,27 @@ const monsters = [
   { name: "Bandit", cr: 0.125, habitat: "Road", type: "Humanoid", group: "Gang" },
 ];
 
-// Selects and returns one random monster from a provided monster list
-function getRandomMonster(monsterList) {
-  const index = Math.floor(Math.random() * monsterList.length);
-  return monsterList[index];
+function getRandomMonster(list) {
+  return list[Math.floor(Math.random() * list.length)];
 }
 
-// Filters monsters based on selected habitat, type, and group
-function filterMonsters(habitat, type, group) {
-  return monsters.filter((monster) => {
-    const matchesHabitat = habitat === "Any" || monster.habitat === habitat;
-    const matchesType = type === "Any" || monster.type === type;
-    const matchesGroup = group === "Any" || monster.group === group;
-
-    return matchesHabitat && matchesType && matchesGroup;
+// Used for 5.0: filters the mock list then picks randomly
+export function generateMobParty(_targetCR, mobCount, habitat, type, group) {
+  const filtered = mockMonsters.filter(m => {
+    return (
+      (habitat === "Any" || m.habitat === habitat) &&
+      (type   === "Any" || m.type   === type)   &&
+      (group  === "Any" || m.group  === group)
+    );
   });
+  if (filtered.length === 0) return [];
+  return Array.from({ length: mobCount }, () => getRandomMonster(filtered));
 }
 
-// Generates a random MOB party based on target CR, MOB count, and selected filters
-export function generateMobParty(
-  targetChallengeRating = 0.5,
-  mobCount = 3,
-  habitat = "Any",
-  type = "Any",
-  group = "Any"
-) {
-  const filteredMonsters = filterMonsters(habitat, type, group);
-  let party = [];
-
-  // If no monsters match the selected filters, return an empty party
-  if (filteredMonsters.length === 0) {
-    return party;
-  }
-
-  // Adds random monsters until the requested MOB count is reached
-  // Target challenge rating is accepted as a parameter for future balancing logic
-  while (party.length < mobCount) {
-    const monster = getRandomMonster(filteredMonsters);
-    party.push(monster);
-  }
-
-  return party;
+// Used for 5.5e: picks randomly from an already-fetched array
+export function pickRandomMonsters(monsters, count) {
+  if (monsters.length === 0) return [];
+  return Array.from({ length: count }, () =>
+    monsters[Math.floor(Math.random() * monsters.length)]
+  );
 }

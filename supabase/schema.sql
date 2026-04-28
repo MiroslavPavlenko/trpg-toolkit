@@ -24,6 +24,61 @@ on conflict (id) do nothing;
 --
 -- We drop-then-create so this script is safe to re-run.
 
+-- ------------------------------------------------------------------
+-- Monsters 5.5e (D&D 2024 Monster Manual)
+-- ------------------------------------------------------------------
+-- CR is stored as text to handle fractional values like "1/4", "1/2".
+-- Legendary is nullable boolean: TRUE for legendary monsters, NULL otherwise.
+-- All long-form text fields (actions, traits, etc.) are unconstrained text.
+
+create table if not exists monsters (
+  id                bigint primary key generated always as identity,
+  name              text        not null,
+  cr                text,
+  type              text,
+  size              text,
+  ac                smallint,
+  hp                smallint,
+  speed             text,
+  str               smallint,
+  dex               smallint,
+  con               smallint,
+  int               smallint,
+  wis               smallint,
+  cha               smallint,
+  alignment         text,
+  legendary         boolean,
+  habitat           text,
+  source            text,
+  image_url         text,
+  initiative        text,
+  skills            text,
+  senses            text,
+  languages         text,
+  xp                integer,
+  immunities        text,
+  resistances       text,
+  vulnerabilities   text,
+  treasure          text,
+  traits            text,
+  actions           text,
+  bonus_actions     text,
+  reactions         text,
+  legendary_actions text
+);
+
+-- Public read access so the enemy generator can query monsters without auth.
+alter table monsters enable row level security;
+
+drop policy if exists "Anyone can read monsters" on monsters;
+create policy "Anyone can read monsters"
+on monsters for select
+to anon, authenticated
+using (true);
+
+-- ------------------------------------------------------------------
+-- Row-Level Security policies on storage.objects
+-- ------------------------------------------------------------------
 drop policy if exists "Users can read their own files in maps and tokens"   on storage.objects;
 drop policy if exists "Users can upload to their own folder in maps and tokens" on storage.objects;
 drop policy if exists "Users can update their own files in maps and tokens" on storage.objects;

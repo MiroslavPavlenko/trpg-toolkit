@@ -12,7 +12,8 @@ function StatBox({ label, value }) {
   );
 }
 
-function MonsterSheet({ data }) {
+// 5e (2014) — data comes from dnd5eapi.co (nested objects)
+function MonsterSheet5e({ data }) {
   const ac = data.armor_class?.[0];
   return (
     <div style={{ maxWidth: "480px" }}>
@@ -54,7 +55,6 @@ function MonsterSheet({ data }) {
           <strong>Languages</strong> {data.languages}
         </p>
       )}
-
       {data.special_abilities?.length > 0 && (
         <div style={{ marginBottom: "8px" }}>
           <strong>Special Abilities</strong>
@@ -65,7 +65,6 @@ function MonsterSheet({ data }) {
           ))}
         </div>
       )}
-
       {data.actions?.length > 0 && (
         <div style={{ marginBottom: "8px" }}>
           <strong>Actions</strong>
@@ -76,7 +75,6 @@ function MonsterSheet({ data }) {
           ))}
         </div>
       )}
-
       {data.legendary_actions?.length > 0 && (
         <div>
           <strong>Legendary Actions</strong>
@@ -85,6 +83,69 @@ function MonsterSheet({ data }) {
               <em>{a.name}.</em> {a.desc}
             </p>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 5.5e (2024) — data comes from the DB (flat capitalized columns)
+function MonsterSheet55({ data }) {
+  return (
+    <div style={{ maxWidth: "480px" }}>
+      <p style={{ margin: "0 0 4px", color: "#666", fontStyle: "italic" }}>
+        {data.Size} {data.Type} · {data.Alignment}
+      </p>
+      <p style={{ margin: "0 0 4px" }}>
+        <strong>CR</strong> {data.CR} &nbsp;·&nbsp;
+        <strong>AC</strong> {data.AC ?? "—"}
+      </p>
+      <p style={{ margin: "0 0 12px" }}>
+        <strong>Speed</strong> {data.Speed ?? "—"}
+      </p>
+
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
+        <StatBox label="STR" value={data.STR} />
+        <StatBox label="DEX" value={data.DEX} />
+        <StatBox label="CON" value={data.CON} />
+        <StatBox label="INT" value={data.INT} />
+        <StatBox label="WIS" value={data.WIS} />
+        <StatBox label="CHA" value={data.CHA} />
+      </div>
+
+      {data.Skills && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Skills</strong> {data.Skills}</p>}
+      {data.Senses && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Senses</strong> {data.Senses}</p>}
+      {data.Languages && <p style={{ margin: "0 0 12px", fontSize: "0.9em" }}><strong>Languages</strong> {data.Languages}</p>}
+      {data.Immunities && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Immunities</strong> {data.Immunities}</p>}
+      {data.Resistances && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Resistances</strong> {data.Resistances}</p>}
+      {data.Traits && (
+        <div style={{ marginBottom: "8px" }}>
+          <strong>Traits</strong>
+          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.Traits}</p>
+        </div>
+      )}
+      {data.Actions && (
+        <div style={{ marginBottom: "8px" }}>
+          <strong>Actions</strong>
+          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.Actions}</p>
+        </div>
+      )}
+      {data["Bonus Actions"] && (
+        <div style={{ marginBottom: "8px" }}>
+          <strong>Bonus Actions</strong>
+          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data["Bonus Actions"]}</p>
+        </div>
+      )}
+      {data.Reactions && (
+        <div style={{ marginBottom: "8px" }}>
+          <strong>Reactions</strong>
+          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.Reactions}</p>
+        </div>
+      )}
+      {data["Legendary Actions"] && (
+        <div>
+          <strong>Legendary Actions</strong>
+          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data["Legendary Actions"]}</p>
         </div>
       )}
     </div>
@@ -106,7 +167,8 @@ function ParticipantSheet({ participant, onClose, onRemove, onDamage, onHeal }) 
 
   if (!participant) return null;
 
-  const maxHp = participant.data.hit_points;
+  // Support both 5e (hit_points) and 5.5e (HP) data shapes
+  const maxHp = participant.data?.hit_points ?? participant.data?.HP;
   const currentHp = participant.hit_points;
   const hpColor = currentHp === 0 ? "#c0392b" : currentHp < maxHp / 2 ? "#e67e22" : "#27ae60";
 
@@ -146,11 +208,11 @@ function ParticipantSheet({ participant, onClose, onRemove, onDamage, onHeal }) 
         </div>
       </div>
 
-      {participant.type === "monster"
-        ? <MonsterSheet data={participant.data} />
-        : <PlayerSheet data={participant.data} />}
+      {participant.type === "monster" && participant.edition === "5.5" && <MonsterSheet55 data={participant.data} />}
+      {participant.type === "monster" && participant.edition !== "5.5" && <MonsterSheet5e data={participant.data} />}
+      {participant.type === "player" && <PlayerSheet data={participant.data} />}
 
-      {/* Damage input */}
+      {/* Damage / Heal input */}
       <div style={{ marginTop: "16px", borderTop: "1px solid #ddd", paddingTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <input
@@ -163,41 +225,19 @@ function ParticipantSheet({ participant, onClose, onRemove, onDamage, onHeal }) 
           />
           <button
             onClick={applyDamage}
-            style={{
-              background: "#c0392b",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "6px 14px",
-              cursor: "pointer",
-            }}
+            style={{ background: "#c0392b", color: "white", border: "none", borderRadius: "4px", padding: "6px 14px", cursor: "pointer" }}
           >
             Damage
           </button>
           <button
             onClick={applyHeal}
-            style={{
-              background: "#27ae60",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "6px 14px",
-              cursor: "pointer",
-            }}
+            style={{ background: "#27ae60", color: "white", border: "none", borderRadius: "4px", padding: "6px 14px", cursor: "pointer" }}
           >
             Heal
           </button>
           <button
             onClick={() => onRemove(participant.id)}
-            style={{
-              background: "transparent",
-              color: "#888",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              padding: "6px 14px",
-              cursor: "pointer",
-              marginLeft: "auto",
-            }}
+            style={{ background: "transparent", color: "#888", border: "1px solid #ccc", borderRadius: "4px", padding: "6px 14px", cursor: "pointer", marginLeft: "auto" }}
           >
             Remove
           </button>

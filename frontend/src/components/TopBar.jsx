@@ -4,12 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { useSession } from "../hooks/useSession";
 import { supabase } from "../services/supabaseClient";
 import Modal from "./Modal";
+import { useRuleSet } from "../context/RuleSetContext";
 
 function TopBar(){
     const navigate = useNavigate();
     const { session } = useSession();
     const [menuOpen, setMenuOpen] = useState(false);
-    const [ruleSet, setRuleSet] = useState("5.0");
+    const { ruleSet, setRuleSet } = useRuleSet();
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
@@ -75,6 +76,7 @@ function TopBar(){
                             onChange={(e) => setRuleSet(e.target.value)}
                         >
                             <option value="5.0">5.0</option>
+                            <option value="5.5">5.5</option>
                         </select>
                     </div>
 
