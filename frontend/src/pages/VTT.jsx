@@ -17,7 +17,8 @@ import PillBottom from "../components/PillBottom";
 import PillMeasure from "../components/PillMeasure";               // Bottom NavPill
 import InitiativeTracker from "../components/InitiativeTracker";        // Initiative panel
 import AddParticipantForm from "../components/AddParticipantForm";      // Add character form
-import ParticipantSheet from "../components/ParticipantSheet";          // Selected participant sheet
+import ParticipantSheet from "../components/ParticipantSheet";   
+import EnemyGenerator from "../features/enemy-generator"; // Selected participant sheet
 import { AiFillThunderbolt } from "react-icons/ai";
 function VTT() {
 /* --States-- */    
@@ -105,7 +106,7 @@ function VTT() {
     }
 
     function handleHeal(id, amount) {
-        updateHp(id, p => Math.min(p.data.hit_points, p.hit_points + amount));
+        updateHp(id, p => Math.min(p.data.hit_points ?? p.data.HP, p.hit_points + amount));
     }
 
     function handleRoll() {
@@ -151,6 +152,7 @@ function VTT() {
         tables: "Lookup Tables",
         dollar: "Loot",
         chart: "Stats",
+        "radom in counter": "Enemy Generator",
     };
 
     const gridSize = Math.max(4, 5 * pixelsPerFoot + gridFineTune); 
@@ -180,6 +182,9 @@ function VTT() {
                 return <p>Coming Soon</p>;
             case "chart":
                 return <p>Coming Soon</p>;
+
+            case "radom in counter":
+                return <EnemyGenerator onAdd={handleAddParticipant} />;
             default:
                 return null;
         }
@@ -262,6 +267,7 @@ function VTT() {
                         onChangeGridOffsetY={setGridOffsetY}     
                     />
                     <PillRight
+                    onEnemyGenerator={() => setOpenModal("radom in counter")}
                     onLoot={() => setOpenModal("dollar")}
                     onStats={() => setOpenModal("chart")}
                     />

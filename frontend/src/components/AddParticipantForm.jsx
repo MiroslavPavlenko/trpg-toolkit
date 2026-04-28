@@ -1,26 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { fetchDndMonster } from "../services/dndMonsterSearch";
+import { searchMonsters55, fetchMonster55ByName } from "../services/monsters55Search";
+import { useRuleSet } from "../context/RuleSetContext";
 
 function AddParticipantForm({ onAdd }) {
+  const { ruleSet } = useRuleSet();
+  const is55 = ruleSet === "5.5";
+
   const [tab, setTab] = useState("monster");
   const [query, setQuery] = useState("");
   const [monster, setMonster] = useState(null);
+  const [results, setResults] = useState([]);
   const [monsterError, setMonsterError] = useState("");
   const [loading, setLoading] = useState(false);
   const [playerName, setPlayerName] = useState("");
   const [playerDex, setPlayerDex] = useState(10);
   const [playerHp, setPlayerHp] = useState(20);
   const [playerInitiative, setPlayerInitiative] = useState("");
-  
+
+  // Clear search state when edition changes
+  useEffect(() => {
+    setQuery("");
+    setMonster(null);
+    setResults([]);
+    setMonsterError("");
+  }, [ruleSet]);
+
   function sizeToCells(sizeStr) {
     switch (sizeStr) {
-        case "Tiny":       
-        case "Small":      
-        case "Medium":     return 1;
-        case "Large":      return 2;
-        case "Huge":       return 3;
-        case "Gargantuan": return 4;
-        default:           return 1;
+      case "Tiny":
+      case "Small":
+      case "Medium":     return 1;
+      case "Large":      return 2;
+      case "Huge":       return 3;
+      case "Gargantuan": return 4;
+      default:           return 1;
     }
   }
 
@@ -30,9 +44,29 @@ function AddParticipantForm({ onAdd }) {
     setLoading(true);
     setMonsterError("");
     setMonster(null);
+    setResults([]);
     try {
-      const result = await fetchDndMonster(query);
-      setMonster(result);
+      if (is55) {
+        const found = await searchMonsters55(query, 10);
+        if (found.length === 0) throw new Error("No monsters found");
+        if (found.length === 1) setMonster(found[0]);
+        else setResults(found);
+
+      } else {
+        setMonster(await fetchDndMonster(query));
+      }
+    } catch (err) {
+      setMonsterError(err instanceof Error ? err.message : "Not found");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSelect55(name) {
+    setLoading(true);
+    setResults([]);
+    try {
+      setMonster(await fetchMonster55ByName(name));
     } catch (err) {
       setMonsterError(err instanceof Error ? err.message : "Not found");
     } finally {
@@ -42,16 +76,30 @@ function AddParticipantForm({ onAdd }) {
 
   function handleAddMonster() {
     if (!monster) return;
-    onAdd({
-      id: `${monster.index}-${Date.now()}`,
-      name: monster.name,
-      type: "monster",
-      dexterity: monster.dexterity,
-      hit_points: monster.hit_points,
-      size: sizeToCells(monster.size),
-      data: monster,
-      
-    });
+
+    const participant = is55
+      ? {
+          id: `${monster.Name}-${Date.now()}`,
+          name: monster.Name,
+          type: "monster",
+          edition: "5.5",
+          dexterity: monster.DEX ?? 10,
+          hit_points: monster.HP ?? 1,
+          size: sizeToCells(monster.Size),
+          data: monster,
+        }
+      : {
+          id: `${monster.index}-${Date.now()}`,
+          name: monster.name,
+          type: "monster",
+          edition: "5.0",
+          dexterity: monster.dexterity,
+          hit_points: monster.hit_points,
+          size: sizeToCells(monster.size),
+          data: monster,
+        };
+
+    onAdd(participant);
     setMonster(null);
     setQuery("");
   }
@@ -59,20 +107,15 @@ function AddParticipantForm({ onAdd }) {
   function handleAddPlayer(e) {
     e.preventDefault();
     if (!playerName.trim()) return;
-    const player = {
-      name: playerName.trim(),
-      dexterity: Number(playerDex),
-      hit_points: Number(playerHp),
-    };
     onAdd({
       id: `player-${Date.now()}`,
-      name: player.name,
+      name: playerName.trim(),
       type: "player",
-      dexterity: player.dexterity,
+      dexterity: Number(playerDex),
       size: 1,
-      hit_points: player.hit_points,
+      hit_points: Number(playerHp),
       ...(playerInitiative !== "" && { initiative_override: Number(playerInitiative) }),
-      data: player,
+      data: { name: playerName.trim(), dexterity: Number(playerDex), hit_points: Number(playerHp) },
     });
     setPlayerName("");
     setPlayerDex(10);
@@ -111,13 +154,30 @@ function AddParticipantForm({ onAdd }) {
               {loading ? "Searching…" : "Search"}
             </button>
           </form>
+
           {monsterError && <p style={{ color: "red", margin: 0 }}>{monsterError}</p>}
+
+          {/* 5.5e: multiple matches — pick one */}
+          {results.length > 1 && (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {results.map((m) => (
+                <li key={m.Name}>
+                  <button onClick={() => handleSelect55(m.Name)}>
+                    {m.Name} — CR {m.CR} — {m.Type}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
           {monster && (
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
               <div>
-                <strong>{monster.name}</strong>
+                <strong>{is55 ? monster.Name : monster.name}</strong>
                 <span style={{ marginLeft: "12px", color: "#aaa", fontSize: "0.9em" }}>
-                  DEX {monster.dexterity} · HP {monster.hit_points}
+                  {is55
+                    ? `DEX ${monster.DEX} · HP ${monster.HP}`
+                    : `DEX ${monster.dexterity} · HP ${monster.hit_points}`}
                 </span>
               </div>
               <button onClick={handleAddMonster}>Add to Combat</button>
