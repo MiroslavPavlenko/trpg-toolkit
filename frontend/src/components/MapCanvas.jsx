@@ -366,40 +366,27 @@ const clampPosition = (pos, currentScale) => {
                                     y={renderY}
                                     draggable={measureMode === null}
                                     onDragStart={(e) => { e.cancelBubble = true; }}
-                                    dragBoundFunc={(pos) => {
-                                        const snapped = snapToCenter(
-                                            pos.x, pos.y, size, gridSize, gridOffsetX, gridOffsetY
-                                        );
-                                        const clampedCol = Math.max(0, Math.min(mapCols - size, snapped.col));
-                                        const clampedRow = Math.max(0, Math.min(mapRows - size, snapped.row));
-                                        const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
-                                        const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
-
-                                        return {
-                                            x: offX + clampedCol * gridSize + (size * gridSize) / 2,
-                                            y: offY + clampedRow * gridSize + (size * gridSize) / 2,
-                                        }
-
-                                    }}
-                                    onDragEnd={(e)=>{
+                                    onDragEnd={(e) => {
                                         const dropX = e.target.x();
                                         const dropY = e.target.y();
                                         const snapped = snapToCenter(
                                             dropX, dropY, size, gridSize, gridOffsetX, gridOffsetY
                                         );
-                                        const newCell= {x: snapped.col, y: snapped.row};
-                                        
+                                        const clampedCol = Math.max(0, Math.min(mapCols - size, snapped.col));
+                                        const clampedRow = Math.max(0, Math.min(mapRows - size, snapped.row));
+                                        const newCell = { x: clampedCol, y: clampedRow };
+
                                         const occupied = participants.some(other =>
                                             other.id !== p.id &&
                                             other.cell &&
                                             tokensOverLap(newCell, size, other.cell, other.size ?? 1)
                                         );
-                                        
-                                        if(occupied) {
+
+                                        if (occupied) {
                                             e.target.position({ x, y });
                                             return;
                                         }
-                                        
+
                                         onMoveToken?.(p.id, newCell);
                                     }}
                                 >
