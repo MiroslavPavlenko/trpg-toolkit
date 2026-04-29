@@ -1,8 +1,8 @@
 import { useState  } from "react";
-import { LuCoins, LuChartBar, LuPackage, LuSwords } from "react-icons/lu";
+import { LuCoins, LuChartBar, LuPackage } from "react-icons/lu";
 import "../style/PillButton.css";
 
-function PillRight ({onLoot, onStats, onEnemyGenerator}) {
+function PillRight ({onLoot, onStats}) {
     const [open, setOpen] = useState(false);
     
     return (
@@ -37,9 +37,6 @@ function PillRight ({onLoot, onStats, onEnemyGenerator}) {
                         whiteSpace: "nowrap",
                     }}
                 >
-                    <button onClick={onEnemyGenerator} className="icon-button" aria-label="enemy generator">
-                        <LuSwords />
-                    </button>
                     <button onClick={onLoot} className="icon-button" aria-label="loot">
                         <LuCoins />
                     </button>

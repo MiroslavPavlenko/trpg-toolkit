@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { LuImage, LuMap, LuUserPlus, LuTable, LuPlus } from "react-icons/lu";
+import { LuImage, LuMap, LuUserPlus, LuTable, LuPlus, LuSwords } from "react-icons/lu";
 import "../style/PillButton.css";
 
-function PillBottom({ onImage, onMap, onAddCharacter, onTables }) {
+function PillBottom({ onImage, onMap, onAddCharacter, onTables, onEnemyGenerator }) {
     const [open, setOpen] = useState(false);
 
     return (
@@ -45,6 +45,9 @@ function PillBottom({ onImage, onMap, onAddCharacter, onTables }) {
                     </button>
                     <button onClick={onAddCharacter} className="icon-button" aria-label="add character">
                         <LuUserPlus />
+                    </button>
+                    <button onClick={onEnemyGenerator} className="icon-button" aria-label="enemy generator">
+                        <LuSwords />
                     </button>
                     <button onClick={onTables} className="icon-button" aria-label="Lookup Tables">
                         <LuTable />

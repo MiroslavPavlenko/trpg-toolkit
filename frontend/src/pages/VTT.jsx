@@ -267,7 +267,6 @@ function VTT() {
                         onChangeGridOffsetY={setGridOffsetY}     
                     />
                     <PillRight
-                    onEnemyGenerator={() => setOpenModal("radom in counter")}
                     onLoot={() => setOpenModal("dollar")}
                     onStats={() => setOpenModal("chart")}
                     />
@@ -275,6 +274,7 @@ function VTT() {
                     onImage={() => setOpenModal("image")}
                     onMap={() => setOpenModal("map")}
                     onAddCharacter={() => setOpenModal("person")}
+                    onEnemyGenerator={() => setOpenModal("radom in counter")}
                     onTables={() => setOpenModal("tables")}
                     />
                 </PillMapContorl>
