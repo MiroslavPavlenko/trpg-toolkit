@@ -12,7 +12,7 @@ export function rollInitiative<T extends Combatant>(participants: T[]): Initiati
     .map(p => ({
       entity: p,
       name: p.name,
-      total: p.initiative_override ?? (Math.floor(Math.random() * 20) + 1 + Math.floor((p.dexterity - 10) / 2)),
+      total: Math.floor(Math.random() * 20) + 1 + Math.floor((p.dexterity - 10) / 2),
       dex: p.dexterity,
     }))
     .sort((a, b) => b.total - a.total || b.dex - a.dex);
@@ -39,12 +39,5 @@ export class CombatTracker<T extends Combatant> {
     }
 
     return this.activeEntity;
-  }
-
-  adjustInitiative(name: string, total: number): void {
-    const entry = this.queue.find(e => e.entity.name === name);
-    if (!entry) return;
-    entry.total = total;
-    this.queue.sort((a, b) => b.total - a.total || b.dex - a.dex);
   }
 }
