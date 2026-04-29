@@ -89,63 +89,63 @@ function MonsterSheet5e({ data }) {
   );
 }
 
-// 5.5e (2024) — data comes from the DB (flat capitalized columns)
+// 5.5e (2024) — data comes from references.monsters (snake_case columns)
 function MonsterSheet55({ data }) {
   return (
     <div style={{ maxWidth: "480px" }}>
       <p style={{ margin: "0 0 4px", color: "#666", fontStyle: "italic" }}>
-        {data.Size} {data.Type} · {data.Alignment}
+        {data.size} {data.type} · {data.alignment}
       </p>
       <p style={{ margin: "0 0 4px" }}>
-        <strong>CR</strong> {data.CR} &nbsp;·&nbsp;
-        <strong>AC</strong> {data.AC ?? "—"}
+        <strong>CR</strong> {data.cr} &nbsp;·&nbsp;
+        <strong>AC</strong> {data.ac ?? "—"}
       </p>
       <p style={{ margin: "0 0 12px" }}>
-        <strong>Speed</strong> {data.Speed ?? "—"}
+        <strong>Speed</strong> {data.speed ?? "—"}
       </p>
 
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
-        <StatBox label="STR" value={data.STR} />
-        <StatBox label="DEX" value={data.DEX} />
-        <StatBox label="CON" value={data.CON} />
-        <StatBox label="INT" value={data.INT} />
-        <StatBox label="WIS" value={data.WIS} />
-        <StatBox label="CHA" value={data.CHA} />
+        <StatBox label="STR" value={data.str} />
+        <StatBox label="DEX" value={data.dex} />
+        <StatBox label="CON" value={data.con} />
+        <StatBox label="INT" value={data.int} />
+        <StatBox label="WIS" value={data.wis} />
+        <StatBox label="CHA" value={data.cha} />
       </div>
 
-      {data.Skills && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Skills</strong> {data.Skills}</p>}
-      {data.Senses && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Senses</strong> {data.Senses}</p>}
-      {data.Languages && <p style={{ margin: "0 0 12px", fontSize: "0.9em" }}><strong>Languages</strong> {data.Languages}</p>}
-      {data.Immunities && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Immunities</strong> {data.Immunities}</p>}
-      {data.Resistances && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Resistances</strong> {data.Resistances}</p>}
-      {data.Traits && (
+      {data.skills && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Skills</strong> {data.skills}</p>}
+      {data.senses && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Senses</strong> {data.senses}</p>}
+      {data.languages && <p style={{ margin: "0 0 12px", fontSize: "0.9em" }}><strong>Languages</strong> {data.languages}</p>}
+      {data.immunities && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Immunities</strong> {data.immunities}</p>}
+      {data.resistances && <p style={{ margin: "0 0 4px", fontSize: "0.9em" }}><strong>Resistances</strong> {data.resistances}</p>}
+      {data.traits && (
         <div style={{ marginBottom: "8px" }}>
           <strong>Traits</strong>
-          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.Traits}</p>
+          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.traits}</p>
         </div>
       )}
-      {data.Actions && (
+      {data.actions && (
         <div style={{ marginBottom: "8px" }}>
           <strong>Actions</strong>
-          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.Actions}</p>
+          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.actions}</p>
         </div>
       )}
-      {data["Bonus Actions"] && (
+      {data.bonus_actions && (
         <div style={{ marginBottom: "8px" }}>
           <strong>Bonus Actions</strong>
-          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data["Bonus Actions"]}</p>
+          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.bonus_actions}</p>
         </div>
       )}
-      {data.Reactions && (
+      {data.reactions && (
         <div style={{ marginBottom: "8px" }}>
           <strong>Reactions</strong>
-          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.Reactions}</p>
+          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.reactions}</p>
         </div>
       )}
-      {data["Legendary Actions"] && (
+      {data.legendary_actions && (
         <div>
           <strong>Legendary Actions</strong>
-          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data["Legendary Actions"]}</p>
+          <p style={{ margin: "4px 0", fontSize: "0.9em" }}>{data.legendary_actions}</p>
         </div>
       )}
     </div>
@@ -168,7 +168,7 @@ function ParticipantSheet({ participant, onClose, onRemove, onDamage, onHeal }) 
   if (!participant) return null;
 
   // Support both 5e (hit_points) and 5.5e (HP) data shapes
-  const maxHp = participant.data?.hit_points ?? participant.data?.HP;
+  const maxHp = participant.data?.hit_points ?? participant.data?.hp;
   const currentHp = participant.hit_points;
   const hpColor = currentHp === 0 ? "#c0392b" : currentHp < maxHp / 2 ? "#e67e22" : "#27ae60";
 
