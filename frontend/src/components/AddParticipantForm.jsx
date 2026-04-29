@@ -79,13 +79,13 @@ function AddParticipantForm({ onAdd }) {
 
     const participant = is55
       ? {
-          id: `${monster.Name}-${Date.now()}`,
-          name: monster.Name,
+          id: `${monster.name}-${Date.now()}`,
+          name: monster.name,
           type: "monster",
           edition: "5.5",
-          dexterity: monster.DEX ?? 10,
-          hit_points: monster.HP ?? 1,
-          size: sizeToCells(monster.Size),
+          dexterity: monster.dex ?? 10,
+          hit_points: monster.hp ?? 1,
+          size: sizeToCells(monster.size),
           data: monster,
         }
       : {
@@ -161,9 +161,9 @@ function AddParticipantForm({ onAdd }) {
           {results.length > 1 && (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {results.map((m) => (
-                <li key={m.Name}>
-                  <button onClick={() => handleSelect55(m.Name)}>
-                    {m.Name} — CR {m.CR} — {m.Type}
+                <li key={m.name}>
+                  <button onClick={() => handleSelect55(m.name)}>
+                    {m.name} — CR {m.cr} — {m.type}
                   </button>
                 </li>
               ))}
@@ -173,10 +173,10 @@ function AddParticipantForm({ onAdd }) {
           {monster && (
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
               <div>
-                <strong>{is55 ? monster.Name : monster.name}</strong>
+                <strong>{is55 ? monster.name : monster.name}</strong>
                 <span style={{ marginLeft: "12px", color: "#aaa", fontSize: "0.9em" }}>
                   {is55
-                    ? `DEX ${monster.DEX} · HP ${monster.HP}`
+                    ? `DEX ${monster.dex} · HP ${monster.hp}`
                     : `DEX ${monster.dexterity} · HP ${monster.hit_points}`}
                 </span>
               </div>

@@ -106,7 +106,7 @@ function VTT() {
     }
 
     function handleHeal(id, amount) {
-        updateHp(id, p => Math.min(p.data.hit_points ?? p.data.HP, p.hit_points + amount));
+        updateHp(id, p => Math.min(p.data.hit_points ?? p.data.hp, p.hit_points + amount));
     }
 
     function handleRoll() {

@@ -77,10 +77,10 @@ export default function EnemyGenerator({ onAdd }) {
     setSavedParties([...savedParties, { party, edition: ruleSet }]);
   }
 
-  function getMonsterName(m)    { return is55 ? m.Name    : m.name; }
-  function getMonsterCR(m)      { return is55 ? m.CR      : m.cr; }
-  function getMonsterType(m)    { return is55 ? m.Type    : m.type; }
-  function getMonsterHabitat(m) { return is55 ? m.Habitat : m.habitat; }
+  function getMonsterName(m)    { return m.name; }
+  function getMonsterCR(m)      { return m.cr; }
+  function getMonsterType(m)    { return m.type; }
+  function getMonsterHabitat(m) { return m.habitat; }
 
   function addToTracker(monster) {
     if (!onAdd) return;
@@ -92,9 +92,9 @@ export default function EnemyGenerator({ onAdd }) {
             name,
             type: "monster",
             edition: "5.5",
-            dexterity: monster.DEX ?? 10,
-            hit_points: monster.HP ?? 1,
-            size: sizeToCells(monster.Size),
+            dexterity: monster.dex ?? 10,
+            hit_points: monster.hp ?? 1,
+            size: sizeToCells(monster.size),
             data: monster,
           }
         : {
