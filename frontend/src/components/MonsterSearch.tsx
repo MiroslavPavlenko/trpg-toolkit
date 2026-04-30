@@ -84,9 +84,9 @@ export default function MonsterSearch() {
       {results.length > 1 && (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {results.map((m) => (
-            <li key={m.Name}>
-              <button onClick={() => handleSelect(m.Name)}>
-                {m.Name} — CR {m.CR} — {m.Type}
+            <li key={m.name}>
+              <button onClick={() => handleSelect(m.name)}>
+                {m.name} — CR {m.cr} — {m.type}
               </button>
             </li>
           ))}
@@ -96,39 +96,39 @@ export default function MonsterSearch() {
       {/* 5.5e stat block */}
       {monster55 && (
         <div>
-          {monster55["Image URL"] && (
-            <img src={monster55["Image URL"]} alt={monster55.Name} style={{ maxHeight: "150px" }} />
+          {monster55.image_url && (
+            <img src={monster55.image_url} alt={monster55.name} style={{ maxHeight: "150px" }} />
           )}
-          <h3>{monster55.Name}</h3>
-          <p><strong>Type:</strong> {monster55.Size} {monster55.Type}</p>
-          <p><strong>Alignment:</strong> {monster55.Alignment ?? "—"}</p>
-          <p><strong>CR:</strong> {monster55.CR} ({monster55.XP ?? "—"} XP)</p>
-          {monster55.Legendary && <p><strong>Legendary Monster</strong></p>}
-          <p><strong>HP:</strong> {monster55.HP ?? "—"}</p>
-          <p><strong>AC:</strong> {monster55.AC ?? "—"}</p>
-          <p><strong>Speed:</strong> {monster55.Speed ?? "—"}</p>
-          <p><strong>Initiative:</strong> {monster55.Initiative ?? "—"}</p>
+          <h3>{monster55.name}</h3>
+          <p><strong>Type:</strong> {monster55.size} {monster55.type}</p>
+          <p><strong>Alignment:</strong> {monster55.alignment ?? "—"}</p>
+          <p><strong>CR:</strong> {monster55.cr} ({monster55.xp ?? "—"} XP)</p>
+          {monster55.legendary && <p><strong>Legendary Monster</strong></p>}
+          <p><strong>HP:</strong> {monster55.hp ?? "—"}</p>
+          <p><strong>AC:</strong> {monster55.ac ?? "—"}</p>
+          <p><strong>Speed:</strong> {monster55.speed ?? "—"}</p>
+          <p><strong>Initiative:</strong> {monster55.initiative ?? "—"}</p>
           <p>
-            <strong>STR</strong> {monster55.STR} &nbsp;
-            <strong>DEX</strong> {monster55.DEX} &nbsp;
-            <strong>CON</strong> {monster55.CON} &nbsp;
-            <strong>INT</strong> {monster55.INT} &nbsp;
-            <strong>WIS</strong> {monster55.WIS} &nbsp;
-            <strong>CHA</strong> {monster55.CHA}
+            <strong>STR</strong> {monster55.str} &nbsp;
+            <strong>DEX</strong> {monster55.dex} &nbsp;
+            <strong>CON</strong> {monster55.con} &nbsp;
+            <strong>INT</strong> {monster55.int} &nbsp;
+            <strong>WIS</strong> {monster55.wis} &nbsp;
+            <strong>CHA</strong> {monster55.cha}
           </p>
-          {monster55.Skills && <p><strong>Skills:</strong> {monster55.Skills}</p>}
-          {monster55.Senses && <p><strong>Senses:</strong> {monster55.Senses}</p>}
-          {monster55.Languages && <p><strong>Languages:</strong> {monster55.Languages}</p>}
-          {monster55.Habitat && <p><strong>Habitat:</strong> {monster55.Habitat}</p>}
-          {monster55.Source && <p><strong>Source:</strong> {monster55.Source}</p>}
-          {monster55.Immunities && <p><strong>Immunities:</strong> {monster55.Immunities}</p>}
-          {monster55.Resistances && <p><strong>Resistances:</strong> {monster55.Resistances}</p>}
-          {monster55.Vulnerabilities && <p><strong>Vulnerabilities:</strong> {monster55.Vulnerabilities}</p>}
-          {monster55.Traits && <div style={{ textAlign: "left" }}><strong>Traits:</strong><p>{monster55.Traits}</p></div>}
-          {monster55.Actions && <div style={{ textAlign: "left" }}><strong>Actions:</strong><p>{monster55.Actions}</p></div>}
-          {monster55["Bonus Actions"] && <div style={{ textAlign: "left" }}><strong>Bonus Actions:</strong><p>{monster55["Bonus Actions"]}</p></div>}
-          {monster55.Reactions && <div style={{ textAlign: "left" }}><strong>Reactions:</strong><p>{monster55.Reactions}</p></div>}
-          {monster55["Legendary Actions"] && <div style={{ textAlign: "left" }}><strong>Legendary Actions:</strong><p>{monster55["Legendary Actions"]}</p></div>}
+          {monster55.skills && <p><strong>Skills:</strong> {monster55.skills}</p>}
+          {monster55.senses && <p><strong>Senses:</strong> {monster55.senses}</p>}
+          {monster55.languages && <p><strong>Languages:</strong> {monster55.languages}</p>}
+          {monster55.habitat && <p><strong>Habitat:</strong> {monster55.habitat}</p>}
+          {monster55.source && <p><strong>Source:</strong> {monster55.source}</p>}
+          {monster55.immunities && <p><strong>Immunities:</strong> {monster55.immunities}</p>}
+          {monster55.resistances && <p><strong>Resistances:</strong> {monster55.resistances}</p>}
+          {monster55.vulnerabilities && <p><strong>Vulnerabilities:</strong> {monster55.vulnerabilities}</p>}
+          {monster55.traits && <div style={{ textAlign: "left" }}><strong>Traits:</strong><p>{monster55.traits}</p></div>}
+          {monster55.actions && <div style={{ textAlign: "left" }}><strong>Actions:</strong><p>{monster55.actions}</p></div>}
+          {monster55.bonus_actions && <div style={{ textAlign: "left" }}><strong>Bonus Actions:</strong><p>{monster55.bonus_actions}</p></div>}
+          {monster55.reactions && <div style={{ textAlign: "left" }}><strong>Reactions:</strong><p>{monster55.reactions}</p></div>}
+          {monster55.legendary_actions && <div style={{ textAlign: "left" }}><strong>Legendary Actions:</strong><p>{monster55.legendary_actions}</p></div>}
         </div>
       )}
 

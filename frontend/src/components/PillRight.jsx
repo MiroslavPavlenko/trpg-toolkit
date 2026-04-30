@@ -1,8 +1,8 @@
 import { useState  } from "react";
-import { LuCoins, LuChartBar, LuPackage } from "react-icons/lu";
+import { LuCoins, LuChartBar, LuPackage, LuSparkles} from "react-icons/lu";
 import "../style/PillButton.css";
 
-function PillRight ({onLoot, onStats}) {
+function PillRight ({onLoot, onStats, onXpCalc}) {
     const [open, setOpen] = useState(false);
     
     return (
@@ -42,6 +42,9 @@ function PillRight ({onLoot, onStats}) {
                     </button>
                     <button onClick={onStats} className="icon-button" aria-label="stats">
                         <LuChartBar />
+                    </button>
+                    <button onClick={onXpCalc} className="icon-button" aria-label="stats">
+                        <LuSparkles/>
                     </button>
                 </div>
             )}

@@ -77,9 +77,47 @@ export type DndEquipment =
   | DndAmmunition
   | DndVehicle;
 
-// Fetches a single equipment item by name from the D&D API.
-// Converts the input to a URL-safe slug (e.g. "Chain Mail" → "chain-mail").
-// Throws an error if the item is not found so the component can show a message.
+export interface EquipmentListItem {
+  index: string;
+  name: string;
+}
+
+// Returns a list of equipment whose names contain the query string.
+export async function searchDndEquipment(query: string): Promise<EquipmentListItem[]> {
+  const response = await fetch(
+    `${DND_API_BASE}/equipment?name=${encodeURIComponent(query.trim())}`,
+    { headers: { Accept: "application/json" } }
+  );
+  if (!response.ok) throw new Error(`Search failed (${response.status})`);
+  const data = await response.json();
+  return data.results ?? [];
+}
+
+// Maps each mob type to the equipment category that best represents its loot.
+export const MOB_CATEGORY_MAP: Record<string, string> = {
+  Beast:     "adventuring-gear",
+  Undead:    "weapon",
+  Dragon:    "armor",
+  Humanoid:  "weapon",
+};
+
+// Fetches all items in an equipment category, then returns `count` random ones.
+export async function fetchRandomLootFromCategory(
+  category: string,
+  count = 3
+): Promise<EquipmentListItem[]> {
+  const response = await fetch(`${DND_API_BASE}/equipment-categories/${category}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`Category "${category}" not found (${response.status})`);
+  const data = await response.json();
+  const pool: EquipmentListItem[] = data.equipment ?? [];
+  const shuffled = pool.sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
+// Fetches a single equipment item by its API index slug (e.g. "longsword").
+// Also accepts a display name — converts it to a slug automatically.
 export async function fetchDndEquipment(itemName: string): Promise<DndEquipment> {
   const slug = itemName.trim().toLowerCase().replace(/\s+/g, "-");
   const response = await fetch(`${DND_API_BASE}/equipment/${slug}`, {

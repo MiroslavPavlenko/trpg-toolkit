@@ -28,9 +28,6 @@ export default function XpCalculator() {
 
   return (
     <section>
-      <h2>Calculate XP</h2>
-      <hr />
-
       {/* Input for the total XP from the encounter */}
       <label htmlFor="total-xp">Total XP:</label>
       <input
