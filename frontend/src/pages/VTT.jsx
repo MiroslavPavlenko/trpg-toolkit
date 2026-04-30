@@ -4,17 +4,19 @@ import { useNavigate } from "react-router-dom";                         // Routi
 import { CombatTracker } from "../services/combatTracker";              // Combat tracker service
 import MonsterSearch from "../components/MonsterSearch";                // Table Look - Monster
 import EquipmentSearch from "../components/EquipmentSearch";            // Table Look - Equipment
+import XpCalculator from "../features/xp-calculator/XpCalculator";      // XP Calculator
 import ImageUploader from "../components/ImageUploader";                // Upload-image
 import MapBackgroundPicker from "../components/MapBackgroundPicker";    // Pick-Map
 import Modal from "../components/Modal";                                // generic modal
 import TopBar from "../components/TopBar";                              // Top Nav
 import MapCanvas from "../components/MapCanvas";                        // Konva canvas
 import PillMapContorl from "../components/PillMapContorl";
+import TreasureGenerator from "../features/loot-generator/TreasureGenerator";
 import PillGrid from "../components/PillGrid";                      
 import PillZoom from "../components/PillZoom";                          // Hover ZoomPill
 import PillRight from "../components/PillRight";                        // Right NavPill
 import PillBottom from "../components/PillBottom";       
-import PillMeasure from "../components/PillMeasure";               // Bottom NavPill
+import PillMeasure from "../components/PillMeasure";                    // Bottom NavPill
 import InitiativeTracker from "../components/InitiativeTracker";        // Initiative panel
 import AddParticipantForm from "../components/AddParticipantForm";      // Add character form
 import ParticipantSheet from "../components/ParticipantSheet";   
@@ -152,7 +154,8 @@ function VTT() {
         tables: "Lookup Tables",
         dollar: "Loot",
         chart: "Stats",
-        "radom in counter": "Enemy Generator",
+        xp: "XP Calculator",
+"radom in counter": "Enemy Generator",
     };
 
     const gridSize = Math.max(4, 5 * pixelsPerFoot + gridFineTune); 
@@ -179,10 +182,14 @@ function VTT() {
                     </>
                 );
             case "dollar":
-                return <p>Coming Soon</p>;
+                return <TreasureGenerator />
+                
             case "chart":
-                return <p>Coming Soon</p>;
+                return <p>Coming Soon</p>
 
+            case "xp":
+                return <XpCalculator />;
+                   
             case "radom in counter":
                 return <EnemyGenerator onAdd={handleAddParticipant} />;
             default:
@@ -269,6 +276,7 @@ function VTT() {
                     <PillRight
                     onLoot={() => setOpenModal("dollar")}
                     onStats={() => setOpenModal("chart")}
+                    onXpCalc={() => setOpenModal("xp")}
                     />
                      <PillBottom
                     onImage={() => setOpenModal("image")}

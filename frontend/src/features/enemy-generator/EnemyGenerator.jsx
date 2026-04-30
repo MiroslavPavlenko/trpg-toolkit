@@ -116,7 +116,6 @@ export default function EnemyGenerator({ onAdd }) {
 
   return (
     <section>
-      <h2>Enemy Party Generator</h2>
       <div style={{ display: "flex", gap: "12px", marginBottom: "8px" }}>
         <span
           style={{
