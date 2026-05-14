@@ -10,29 +10,37 @@ function LoginForm() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
+      email,
+      password,
     });
 
     if (signInError) {
       setError(signInError.message);
     } else {
       setError("");
-      navigate("/campaigns");
+      void navigate("/");
     }
   };
 
   return (
     <div className="login-form-container">
-      <form onSubmit={handleSubmit} className="login-form">
+      <form
+        onSubmit={(e) => {
+          void handleSubmit(e);
+        }}
+        className="login-form"
+      >
         <h2 className="login-form-title">Login</h2>
 
-        <label className="login-form-label">Email</label>
+        <label htmlFor="login-email" className="login-form-label">
+          Email
+        </label>
         <input
+          id="login-email"
           type="email"
           placeholder="Enter your email"
           value={email}
@@ -40,8 +48,11 @@ function LoginForm() {
           className="login-form-input"
         />
 
-        <label className="login-form-label">Password</label>
+        <label htmlFor="login-password" className="login-form-label">
+          Password
+        </label>
         <input
+          id="login-password"
           type="password"
           placeholder="Enter your password"
           value={password}
@@ -49,7 +60,7 @@ function LoginForm() {
           className="login-form-input"
         />
 
-        <Link to="/signup" className="login-form-signup-link">
+        <Link to="/signup" className="login-form-label">
           Create account
         </Link>
 
