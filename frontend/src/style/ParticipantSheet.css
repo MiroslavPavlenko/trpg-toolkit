@@ -1,0 +1,158 @@
+/* HP bar */
+.ps-hp-section {
+  margin-bottom: 16px;
+}
+
+.ps-hp-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.ps-hp-label {
+  font-weight: bold;
+}
+
+.ps-hp-down {
+  color: #c0392b;
+  font-weight: bold;
+}
+
+.ps-hp-bar-track {
+  background: #ddd;
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.ps-hp-bar-fill {
+  height: 100%;
+  transition:
+    width 0.3s,
+    background 0.3s;
+}
+
+/* Statuses */
+.ps-statuses {
+  margin-top: 12px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+.ps-statuses__heading {
+  font-weight: bold;
+  font-size: 0.85em;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.ps-statuses__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ps-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff3e0;
+  border: 1px solid #e67e22;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.8em;
+}
+
+.ps-status-pill__remove {
+  background: none;
+  border: none;
+  color: #c0392b;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-size: 1em;
+}
+
+.ps-statuses__form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ps-statuses__select,
+.ps-statuses__turns-input {
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 0.85em;
+}
+
+.ps-statuses__turns-input {
+  width: 52px;
+}
+
+.ps-statuses__turns-label {
+  font-size: 0.8em;
+  color: #666;
+}
+
+.ps-statuses__apply-btn {
+  background: #2980b9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+.ps-statuses__apply-btn:disabled {
+  background: #bbb;
+  cursor: not-allowed;
+}
+
+/* Damage / Heal / Remove actions */
+.ps-actions {
+  margin-top: 16px;
+  border-top: 1px solid #ddd;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ps-actions__row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ps-actions__amount-input {
+  width: 90px;
+  padding: 4px 8px;
+}
+
+.ps-actions__btn {
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.ps-actions__btn--damage {
+  background: #c0392b;
+}
+
+.ps-actions__btn--heal {
+  background: #27ae60;
+}
+
+.ps-actions__btn--remove {
+  background: transparent;
+  color: #888;
+  border: 1px solid #ccc;
+  margin-left: auto;
+}

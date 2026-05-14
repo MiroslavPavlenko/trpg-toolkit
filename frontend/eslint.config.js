@@ -26,9 +26,9 @@ export default tseslint.config(
   // Base JS recommended rules — applies everywhere
   js.configs.recommended,
 
-  // App source: TS + React, with type-aware linting
+  // TypeScript source: type-aware linting
   {
-    files: ["src/**/*.{ts,tsx,js,jsx}"],
+    files: ["src/**/*.{ts,tsx}"],
     extends: [...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       ecmaVersion: 2022,
@@ -51,16 +51,13 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       ...jsxA11y.configs.recommended.rules,
 
-      // React 19 / new JSX transform
       "react/react-in-jsx-scope": "off",
       "react/jsx-uses-react": "off",
       "react/prop-types": "off",
       "react/display-name": "off",
 
-      // Vite HMR friendliness
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
 
-      // Sensible TS defaults
       "@typescript-eslint/no-unused-vars": [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
@@ -68,7 +65,6 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/consistent-type-imports": "warn",
 
-      // Legacy-friendly: downgrade noisy type-aware rules to warnings
       "@typescript-eslint/no-unsafe-assignment": "warn",
       "@typescript-eslint/no-unsafe-member-access": "warn",
       "@typescript-eslint/no-unsafe-call": "warn",
@@ -82,15 +78,53 @@ export default tseslint.config(
       "@typescript-eslint/restrict-template-expressions": "warn",
       "@typescript-eslint/require-await": "warn",
 
-      // Accessibility (legacy-friendly)
       "jsx-a11y/click-events-have-key-events": "warn",
       "jsx-a11y/no-static-element-interactions": "warn",
       "jsx-a11y/no-autofocus": "warn",
       "jsx-a11y/label-has-associated-control": "warn",
 
-      // General
       "no-console": ["warn", { allow: ["warn", "error"] }],
-      "no-dupe-keys": "error", // real bug — keep blocking
+      "no-dupe-keys": "error",
+      eqeqeq: ["error", "always"],
+    },
+    settings: { react: { version: "detect" } },
+  },
+
+  // JS/JSX source: React rules without type-aware linting
+  {
+    files: ["src/**/*.{js,jsx}"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: { ...globals.browser, ...globals.es2022 },
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+    plugins: {
+      react,
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+      "jsx-a11y": jsxA11y,
+    },
+    rules: {
+      ...react.configs.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
+      ...jsxA11y.configs.recommended.rules,
+
+      "react/react-in-jsx-scope": "off",
+      "react/jsx-uses-react": "off",
+      "react/prop-types": "off",
+      "react/display-name": "off",
+
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+
+      "jsx-a11y/click-events-have-key-events": "warn",
+      "jsx-a11y/no-static-element-interactions": "warn",
+      "jsx-a11y/no-autofocus": "warn",
+      "jsx-a11y/label-has-associated-control": "warn",
+
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-dupe-keys": "error",
       eqeqeq: ["error", "always"],
     },
     settings: { react: { version: "detect" } },

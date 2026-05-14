@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import VTT from "./pages/VTT";
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import Campaigns from "./pages/Campaigns";
 import Encounters from "./pages/Encounters";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -51,6 +52,7 @@ function App() {
             />
 
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
           </Routes>
         </EncountersProvider>
       </CampaignsProvider>
