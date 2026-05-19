@@ -16,6 +16,12 @@ const DEFAULT_GRID = {
   gridOffsetY: 0,
 };
 
+const DEFAULT_MOB_VISIBILITY_BY_LAYER = {
+  1: false,
+  2: false,
+  3: false,
+};
+
 export function VttSessionProvider({ children }) {
   const [searchParams] = useSearchParams();
   const encounterId = searchParams.get("encounterId");
@@ -26,6 +32,9 @@ export function VttSessionProvider({ children }) {
   const [backgroundRef, setBackgroundRef] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [stagingParticipants, setStagingParticipants] = useState([]);
+
+  // DM 56: Mobs are hidden by layer until the GM toggles that layer visible.
+  const [mobVisibilityByLayer, setMobVisibilityByLayer] = useState(DEFAULT_MOB_VISIBILITY_BY_LAYER);
 
   // --- Combat: combatRef is the live source of truth;
 
@@ -129,6 +138,13 @@ export function VttSessionProvider({ children }) {
   function setBackground(url, name) {
     setBackgroundUrl(url);
     setBackgroundRef({ bucket: "maps", name });
+  }
+
+  function toggleMobVisibilityForLayer(layer) {
+    setMobVisibilityByLayer((prev) => ({
+      ...prev,
+      [layer]: !prev[layer],
+    }));
   }
 
   // --- Participant mutators
@@ -270,6 +286,11 @@ export function VttSessionProvider({ children }) {
     backgroundRef,
     setBackground,
     participants,
+
+    // DM 56: Mob visibility controls for map layers.
+    mobVisibilityByLayer,
+    toggleMobVisibilityForLayer,
+
     stagingParticipants,
     addParticipant,
     addToStaging,
