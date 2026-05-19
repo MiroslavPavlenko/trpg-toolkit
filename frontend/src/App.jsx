@@ -1,13 +1,23 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import VTT from "./pages/VTT";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import Campaigns from "./pages/Campaigns";
-import Encounters from "./pages/Encounters";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { RuleSetProvider } from "./context/RuleSetContext";
 import { CampaignsProvider } from "./context/CampaignsContext";
 import { EncountersProvider } from "./context/EncountersContext";
+import { VttSessionProvider } from "./context/VttSessionContext";
+import VTTEdit from "./pages/VTTEdit";
+import VTTPlay from "./pages/VTTPlay";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import Campaigns from "./pages/Campaigns";
+import Encounters from "./pages/Encounters";
+
+function VttSessionLayout() {
+  return (
+    <VttSessionProvider>
+      <Outlet />
+    </VttSessionProvider>
+  );
+}
 
 function App() {
   return (
@@ -46,10 +56,14 @@ function App() {
               path="/vtt"
               element={
                 <ProtectedRoute>
-                  <VTT />
+                  <VttSessionLayout />
                 </ProtectedRoute>
               }
-            />
+            >
+              <Route index element={<Navigate to="edit" replace />} />
+              <Route path="edit" element={<VTTEdit />} />
+              <Route path="play" element={<VTTPlay />} />
+            </Route>
 
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
