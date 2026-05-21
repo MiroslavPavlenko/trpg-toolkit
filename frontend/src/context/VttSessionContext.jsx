@@ -159,6 +159,11 @@ export function VttSessionProvider({ children }) {
               : Math.max(0, Number(status.turnsRemaining ?? 0) - 1),
         }))
         .filter((status) => status.statusId === DOWN_STATUS_ID || status.turnsRemaining > 0),
+        .map((status) => ({
+          ...status,
+          turnsRemaining: Math.max(0, Number(status.turnsRemaining ?? 0) - 1),
+        }))
+        .filter((status) => status.turnsRemaining > 0),
     }));
   }
 
@@ -348,6 +353,7 @@ export function VttSessionProvider({ children }) {
 
       return { ...p, hit_points: nextHp, statuses: nextStatuses };
     });
+    updateParticipant(id, (p) => ({ ...p, hit_points: calc(p) }));
   }
 
   function damage(id, amount) {
