@@ -44,6 +44,20 @@ function getParticipantImageUrl(participant) {
   return participant.image_url ?? participant.imageUrl ?? participant.data?.image_url ?? null;
 }
 
+function tickParticipantStatuses(statuses = []) {
+  return statuses
+    .filter((status) => status.statusId === DOWN_STATUS_ID || status.turnsRemaining !== null)
+    .map((status) => {
+      if (status.statusId === DOWN_STATUS_ID) return status;
+
+      return {
+        ...status,
+        turnsRemaining: Math.max(0, Number(status.turnsRemaining ?? 0) - 1),
+      };
+    })
+    .filter((status) => status.statusId === DOWN_STATUS_ID || status.turnsRemaining > 0);
+}
+
 export function VttSessionProvider({ children }) {
   const [searchParams] = useSearchParams();
   const encounterId = searchParams.get("encounterId");
@@ -149,21 +163,7 @@ export function VttSessionProvider({ children }) {
   function tickStatusesForParticipant(id) {
     updateParticipant(id, (participant) => ({
       ...participant,
-      statuses: (participant.statuses ?? [])
-        .filter((status) => status.statusId === DOWN_STATUS_ID || status.turnsRemaining !== null)
-        .map((status) => ({
-          ...status,
-          turnsRemaining:
-            status.statusId === DOWN_STATUS_ID
-              ? status.turnsRemaining
-              : Math.max(0, Number(status.turnsRemaining ?? 0) - 1),
-        }))
-        .filter((status) => status.statusId === DOWN_STATUS_ID || status.turnsRemaining > 0),
-        .map((status) => ({
-          ...status,
-          turnsRemaining: Math.max(0, Number(status.turnsRemaining ?? 0) - 1),
-        }))
-        .filter((status) => status.turnsRemaining > 0),
+      statuses: tickParticipantStatuses(participant.statuses),
     }));
   }
 
