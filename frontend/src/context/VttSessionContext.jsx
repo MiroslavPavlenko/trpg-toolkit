@@ -63,6 +63,31 @@ export function VttSessionProvider({ children }) {
   }
 
   // --- Hydrate from ?encounterId=…
+  function updateParticipant(id, updater) {
+    setParticipants((prev) => prev.map((p) => (p.id === id ? updater(p) : p)));
+
+    if (combatRef.current) {
+      combatRef.current.queue = combatRef.current.queue.map((entry) =>
+        entry.entity.id === id ? { ...entry, entity: updater(entry.entity) } : entry,
+      );
+      syncQueue();
+    }
+
+    setSelectedParticipant((prev) => (prev?.id === id ? updater(prev) : prev));
+  }
+
+  function tickStatusesForParticipant(id) {
+    updateParticipant(id, (participant) => ({
+      ...participant,
+      statuses: (participant.statuses ?? [])
+        .map((status) => ({
+          ...status,
+          turnsRemaining: Math.max(0, Number(status.turnsRemaining ?? 0) - 1),
+        }))
+        .filter((status) => status.turnsRemaining > 0),
+    }));
+  }
+
   useEffect(() => {
     if (!encounterId) return;
     if (hydratedForId.current === encounterId) return;
@@ -208,18 +233,7 @@ export function VttSessionProvider({ children }) {
   }
 
   function updateHp(id, calc) {
-    setParticipants((prev) => prev.map((p) => (p.id === id ? { ...p, hit_points: calc(p) } : p)));
-    if (combatRef.current) {
-      combatRef.current.queue.forEach((entry) => {
-        if (entry.entity.id === id) {
-          entry.entity = { ...entry.entity, hit_points: calc(entry.entity) };
-        }
-      });
-      syncQueue();
-    }
-    setSelectedParticipant((prev) =>
-      prev?.id === id ? { ...prev, hit_points: calc(prev) } : prev,
-    );
+    updateParticipant(id, (p) => ({ ...p, hit_points: calc(p) }));
   }
 
   function damage(id, amount) {
@@ -233,6 +247,30 @@ export function VttSessionProvider({ children }) {
     });
   }
 
+  function applyStatus(id, status) {
+    updateParticipant(id, (participant) => {
+      const currentStatuses = participant.statuses ?? [];
+      const statusAllowsStacking = status.stackable !== false;
+      const alreadyApplied = currentStatuses.some((s) => s.statusId === status.statusId);
+
+      if (!statusAllowsStacking && alreadyApplied) {
+        return participant;
+      }
+
+      return {
+        ...participant,
+        statuses: [...currentStatuses, status],
+      };
+    });
+  }
+
+  function removeStatus(id, instanceId) {
+    updateParticipant(id, (participant) => ({
+      ...participant,
+      statuses: (participant.statuses ?? []).filter((status) => status.instanceId !== instanceId),
+    }));
+  }
+
   // --- Combat mutators
   function roll() {
     if (participants.length === 0) return;
@@ -243,6 +281,10 @@ export function VttSessionProvider({ children }) {
 
   function nextTurn() {
     if (!combatRef.current) return;
+    const endingTurnId = combatRef.current.activeEntity?.entity?.id;
+    if (endingTurnId) {
+      tickStatusesForParticipant(endingTurnId);
+    }
     combatRef.current.nextTurn();
     syncQueue();
   }
@@ -317,6 +359,8 @@ export function VttSessionProvider({ children }) {
     roll,
     nextTurn,
     adjustInitiative,
+    applyStatus,
+    removeStatus,
 
     // ephemeral
     backgroundUrl,

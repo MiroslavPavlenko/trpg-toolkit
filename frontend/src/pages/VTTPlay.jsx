@@ -48,6 +48,8 @@ function VTTPlay() {
     roll,
     nextTurn,
     adjustInitiative,
+    applyStatus,
+    removeStatus,
     currentVttState,
     saveCurrent,
   } = useVttSession();
@@ -169,6 +171,8 @@ function VTTPlay() {
           onDamage={damage}
           onHeal={heal}
           onAdjustInitiative={adjustInitiative}
+          onApplyStatus={applyStatus}
+          onRemoveStatus={removeStatus}
         />
 
         <ParticipantSheet

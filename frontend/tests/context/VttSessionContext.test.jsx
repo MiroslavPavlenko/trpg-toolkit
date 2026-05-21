@@ -247,6 +247,53 @@ describe("VttSessionContext", () => {
     expect(result.current.initiativeQueue[0].name).toBe(last);
   });
 
+  it("applies and removes statuses from participant instances", () => {
+    const { result } = renderHook(() => useVttSession(), { wrapper: makeWrapper() });
+    act(() => result.current.addParticipant(makeParticipant({ id: "p1", name: "Alpha" })));
+
+    act(() =>
+      result.current.applyStatus("p1", {
+        instanceId: "status-1",
+        statusId: "poisoned",
+        name: "Poisoned",
+        turnsRemaining: 2,
+        stackable: false,
+        effect_summary: "Disadvantage on attack rolls and ability checks.",
+      }),
+    );
+
+    expect(result.current.participants[0].statuses).toHaveLength(1);
+    expect(result.current.participants[0].statuses[0].name).toBe("Poisoned");
+
+    act(() => result.current.removeStatus("p1", "status-1"));
+    expect(result.current.participants[0].statuses).toEqual([]);
+  });
+
+  it("ticks active participant statuses down when initiative advances", () => {
+    const { result } = renderHook(() => useVttSession(), { wrapper: makeWrapper() });
+    act(() => {
+      result.current.addParticipant(makeParticipant({ id: "p1", name: "Alpha", dexterity: 14 }));
+      result.current.addParticipant(makeParticipant({ id: "p2", name: "Beta", dexterity: 10 }));
+    });
+    act(() => result.current.roll());
+    const activeId = result.current.initiativeQueue[0].id;
+
+    act(() =>
+      result.current.applyStatus(activeId, {
+        instanceId: "status-1",
+        statusId: "stunned",
+        name: "Stunned",
+        turnsRemaining: 1,
+        stackable: false,
+        effect_summary: null,
+      }),
+    );
+    expect(result.current.participants.find((p) => p.id === activeId).statuses).toHaveLength(1);
+
+    act(() => result.current.nextTurn());
+    expect(result.current.participants.find((p) => p.id === activeId).statuses).toEqual([]);
+  });
+
   it("currentVttState mirrors the persisted JSON shape", () => {
     const { result } = renderHook(() => useVttSession(), { wrapper: makeWrapper() });
     act(() => result.current.setMapInfo({ width: 20, height: 10 }));

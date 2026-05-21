@@ -80,6 +80,7 @@ const MapCanvas = forwardRef(
     const [shapePos, setShapePos] = useState(null);
     const [shapeRotation, setShapeRotation] = useState(0);
     const [shapeAimMode, setShapeAimMode] = useState("moving");
+    const [statusPopup, setStatusPopup] = useState(null);
 
     /* --Constants-- */
     const SCALE_BY = 1.05;
@@ -371,6 +372,10 @@ const MapCanvas = forwardRef(
                 const renderY = Math.round(y);
                 const radius = size * gridSize * 0.4;
                 const fontSize = Math.max(10, gridSize / 5);
+                const activeStatuses = p.statuses ?? [];
+                const statusCount = activeStatuses.length;
+                const statusBadgeRadius = Math.max(8, Math.min(13, radius * 0.34));
+                const statusBadgeOffset = radius * 0.66;
 
                 const mapCols = Math.floor(drawWidth / gridSize);
                 const mapRows = Math.floor(drawHeight / gridSize);
@@ -384,6 +389,16 @@ const MapCanvas = forwardRef(
                     onDragStart={(e) => {
                       e.cancelBubble = true;
                     }}
+                    onMouseEnter={() => {
+                      if (statusCount > 0) {
+                        setStatusPopup({
+                          x: renderX + radius + 10,
+                          y: renderY - radius,
+                          statuses: activeStatuses,
+                        });
+                      }
+                    }}
+                    onMouseLeave={() => setStatusPopup(null)}
                     onDragEnd={(e) => {
                       const dropX = e.target.x();
                       const dropY = e.target.y();
@@ -414,12 +429,50 @@ const MapCanvas = forwardRef(
                       onMoveToken?.(p.id, newCell);
                     }}
                   >
+                    {statusCount > 0 && (
+                      <Circle
+                        radius={radius + 5}
+                        stroke="#a855f7"
+                        strokeWidth={3}
+                        dash={[8, 5]}
+                        opacity={0.95}
+                        shadowColor="#a855f7"
+                        shadowBlur={14}
+                        listening={false}
+                      />
+                    )}
                     <Circle
                       radius={radius}
                       fill={p.type === "monster" ? "#dd1414" : "#3498db"}
-                      stroke="black"
-                      strokeWidth={1}
+                      stroke={statusCount > 0 ? "#f5d0fe" : "black"}
+                      strokeWidth={statusCount > 0 ? 2 : 1}
                     />
+                    {statusCount > 0 && (
+                      <>
+                        <Circle
+                          x={statusBadgeOffset}
+                          y={-statusBadgeOffset}
+                          radius={statusBadgeRadius}
+                          fill="#6b4eff"
+                          stroke="white"
+                          strokeWidth={1}
+                          shadowColor="black"
+                          shadowBlur={5}
+                          listening={false}
+                        />
+                        <Text
+                          x={statusBadgeOffset - statusBadgeRadius}
+                          y={-statusBadgeOffset - statusBadgeRadius * 0.65}
+                          text={String(statusCount)}
+                          width={statusBadgeRadius * 2}
+                          fontSize={Math.max(9, statusBadgeRadius * 1.05)}
+                          fill="white"
+                          align="center"
+                          fontStyle="bold"
+                          listening={false}
+                        />
+                      </>
+                    )}
                     <Text
                       text={p.name}
                       fontSize={fontSize}
@@ -432,6 +485,21 @@ const MapCanvas = forwardRef(
                   </Group>
                 );
               })}
+
+              {statusPopup && (
+                <Label x={statusPopup.x} y={statusPopup.y} listening={false}>
+                  <Tag fill="rgba(35, 26, 54, 0.94)" cornerRadius={5} />
+                  <Text
+                    text={statusPopup.statuses
+                      .map((status) => `${status.name} (${status.turnsRemaining}t)`)
+                      .join("\n")}
+                    padding={7}
+                    fontSize={13}
+                    fill="white"
+                    lineHeight={1.25}
+                  />
+                </Label>
+              )}
 
               {measureLine &&
                 gridSize > 0 &&
