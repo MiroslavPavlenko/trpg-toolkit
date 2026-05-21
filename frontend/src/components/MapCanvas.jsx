@@ -60,7 +60,6 @@ function getParticipantImageUrl(participant) {
   return participant.image_url ?? participant.imageUrl ?? participant.data?.image_url ?? null;
 }
 
-
 function makeDrawingId() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();

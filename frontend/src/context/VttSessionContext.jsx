@@ -23,7 +23,6 @@ const DEFAULT_MOB_VISIBILITY_BY_LAYER = {
   3: false,
 };
 
-
 const DEFAULT_DRAWING_TOOL = {
   color: "#facc15",
   strokeWidth: 6,
@@ -58,7 +57,6 @@ function tickParticipantStatuses(statuses = []) {
     })
     .filter((status) => status.statusId === DOWN_STATUS_ID || status.turnsRemaining > 0);
 }
-
 
 export function VttSessionProvider({ children }) {
   const [searchParams] = useSearchParams();
