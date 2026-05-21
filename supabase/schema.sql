@@ -77,6 +77,29 @@ to anon, authenticated
 using (true);
 
 -- ------------------------------------------------------------------
+-- Status reference data
+-- ------------------------------------------------------------------
+-- Read-only lookup table for combat statuses/conditions selectable in the VTT.
+
+create schema if not exists references;
+
+create table if not exists references.statuses (
+  id text,
+  name text,
+  stackable boolean,
+  default_duration_type text,
+  effect_summary text
+) tablespace pg_default;
+
+alter table references.statuses enable row level security;
+
+drop policy if exists "Anyone can read statuses" on references.statuses;
+create policy "Anyone can read statuses"
+on references.statuses for select
+to anon, authenticated
+using (true);
+
+-- ------------------------------------------------------------------
 -- Row-Level Security policies on storage.objects
 -- ------------------------------------------------------------------
 drop policy if exists "Users can read their own files in maps and tokens"   on storage.objects;
@@ -119,3 +142,4 @@ using (
   bucket_id in ('maps', 'tokens')
   and (storage.foldername(name))[1] = auth.uid()::text
 );
+

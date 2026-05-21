@@ -1,6 +1,14 @@
 import "../style/CharacterItem.css";
 
-function CharacterItem({ character, isActive, onClick, currentHp, onHpClick }) {
+function CharacterItem({
+  character,
+  isActive,
+  onClick,
+  currentHp,
+  onHpClick,
+  statusCount = 0,
+  onStatusClick,
+}) {
   const typeClass = character.type === "player" ? "character-item-player" : "character-item-enemy";
 
   return (
@@ -12,6 +20,24 @@ function CharacterItem({ character, isActive, onClick, currentHp, onHpClick }) {
       >
         <span className="character-item-icon">👤</span>
       </button>
+
+      {onStatusClick && (
+        <button
+          className={`character-item-status ${statusCount > 0 ? "character-item-status--active" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onStatusClick();
+          }}
+          title={
+            statusCount > 0
+              ? `${statusCount} active status${statusCount === 1 ? "" : "es"}`
+              : "Apply status"
+          }
+          aria-label={`apply status to ${character.name}`}
+        >
+          {statusCount > 0 ? statusCount : "+"}
+        </button>
+      )}
 
       {currentHp !== undefined && (
         <button
