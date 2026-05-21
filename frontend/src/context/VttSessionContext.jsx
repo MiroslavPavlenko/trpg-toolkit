@@ -40,7 +40,6 @@ const DOWN_STATUS = {
   effect_summary: "Health is 0. This participant is down until healed above 0 HP.",
 };
 
-
 function getParticipantImageUrl(participant) {
   return participant.image_url ?? participant.imageUrl ?? participant.data?.image_url ?? null;
 }

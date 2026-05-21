@@ -50,7 +50,6 @@ function formatStatusLabel(status: AppliedStatus) {
     : `${status.name} (${status.turnsRemaining}t)`;
 }
 
-
 function HpPopover({ entry, onDamage, onHeal, onClose }: HpPopoverProps) {
   const [amount, setAmount] = useState(1);
   const inputRef = useRef<HTMLInputElement>(null);
