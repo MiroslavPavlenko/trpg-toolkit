@@ -202,6 +202,7 @@ describe("VttSessionContext", () => {
     expect(result.current.participants[0].cell).toEqual({ x: 4, y: 7 });
   });
 
+
   it("adds, removes, clears, and serializes map drawings", () => {
     const { result } = renderHook(() => useVttSession(), { wrapper: makeWrapper() });
     const drawing = {
