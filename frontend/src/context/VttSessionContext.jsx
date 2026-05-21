@@ -23,6 +23,12 @@ const DEFAULT_MOB_VISIBILITY_BY_LAYER = {
   3: false,
 };
 
+const DEFAULT_DRAWING_TOOL = {
+  color: "#facc15",
+  strokeWidth: 6,
+  mode: "pen",
+};
+
 function getParticipantImageUrl(participant) {
   return participant.image_url ?? participant.imageUrl ?? participant.data?.image_url ?? null;
 }
@@ -35,6 +41,8 @@ export function VttSessionProvider({ children }) {
   // --- Persistable state (mirrors serialized JSON shape)
   const [grid, setGrid] = useState(DEFAULT_GRID);
   const [backgroundRef, setBackgroundRef] = useState(null);
+  const [drawings, setDrawings] = useState([]);
+  const [drawingTool, setDrawingTool] = useState(DEFAULT_DRAWING_TOOL);
   const [participants, setParticipants] = useState([]);
   const [stagingParticipants, setStagingParticipants] = useState([]);
 
@@ -162,6 +170,7 @@ export function VttSessionProvider({ children }) {
     });
     setBackgroundRef(restored.backgroundRef);
     setBackgroundUrl(null);
+    setDrawings(restored.drawings ?? []);
     setParticipants(restored.participants);
 
     if (restored.combat.active && restored.participants.length > 0) {
@@ -217,6 +226,22 @@ export function VttSessionProvider({ children }) {
   function setBackground(url, name) {
     setBackgroundUrl(url);
     setBackgroundRef({ bucket: "maps", name });
+  }
+
+  function addDrawing(drawing) {
+    setDrawings((prev) => [...prev, drawing]);
+  }
+
+  function undoDrawing() {
+    setDrawings((prev) => prev.slice(0, -1));
+  }
+
+  function removeDrawing(id) {
+    setDrawings((prev) => prev.filter((drawing) => drawing.id !== id));
+  }
+
+  function clearDrawings() {
+    setDrawings([]);
   }
 
   function toggleMobVisibilityForLayer(layer) {
@@ -352,6 +377,7 @@ export function VttSessionProvider({ children }) {
       serializeVttState({
         ...grid,
         backgroundRef,
+        drawings,
         participants,
         combat: {
           active: combatActive,
@@ -364,7 +390,7 @@ export function VttSessionProvider({ children }) {
         },
         viewport: null,
       }),
-    [grid, backgroundRef, participants, combatActive, initiativeQueue],
+    [grid, backgroundRef, drawings, participants, combatActive, initiativeQueue],
   );
 
   function saveCurrent(targetId) {
@@ -383,6 +409,13 @@ export function VttSessionProvider({ children }) {
     setGridOffsetY,
     backgroundRef,
     setBackground,
+    drawings,
+    drawingTool,
+    setDrawingTool,
+    addDrawing,
+    removeDrawing,
+    undoDrawing,
+    clearDrawings,
     participants,
 
     // DM 56: Mob visibility controls for map layers.

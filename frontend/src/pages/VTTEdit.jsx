@@ -9,6 +9,7 @@ import MapCanvas from "../components/MapCanvas";
 import PillMapContorl from "../components/PillMapContorl";
 import PillZoom from "../components/PillZoom";
 import PillGrid from "../components/PillGrid";
+import PillDraw from "../components/PillDraw";
 import PillBottom from "../components/PillBottom";
 import Modal from "../components/Modal";
 import ImageUploader from "../components/ImageUploader";
@@ -24,6 +25,7 @@ function VTTEdit() {
   /* --States-- */
   const mapCanvasRef = useRef(null);
   const [openModal, setOpenModal] = useState(null);
+  const [drawingEnabled, setDrawingEnabled] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -35,6 +37,13 @@ function VTTEdit() {
     setGridOffsetY,
     backgroundUrl,
     setBackground,
+    drawings,
+    drawingTool,
+    setDrawingTool,
+    addDrawing,
+    removeDrawing,
+    undoDrawing,
+    clearDrawings,
     participants,
 
     // DM 56: GM controls for mob visibility by layer.
@@ -45,7 +54,6 @@ function VTTEdit() {
     currentLayer,
     setCurrentLayer,
 
-    addParticipant,
     addToStaging,
     removeParticipant,
     moveToken,
@@ -158,6 +166,11 @@ function VTTEdit() {
           onMapReady={setMapInfo}
           onMoveToken={moveToken}
           measureMode={null}
+          drawings={drawings}
+          drawingEnabled={drawingEnabled}
+          drawingTool={drawingTool}
+          onAddDrawing={addDrawing}
+          onRemoveDrawing={removeDrawing}
         />
 
         {/* DM 56: GM controls for revealing mobs to players by layer. */}
@@ -267,6 +280,14 @@ function VTTEdit() {
             onChangeGridOffsetX={setGridOffsetX}
             gridOffsetY={gridOffsetY}
             onChangeGridOffsetY={setGridOffsetY}
+          />
+          <PillDraw
+            drawingEnabled={drawingEnabled}
+            drawingTool={drawingTool}
+            onToggleDrawing={setDrawingEnabled}
+            onChangeDrawingTool={setDrawingTool}
+            onUndoDrawing={undoDrawing}
+            onClearDrawings={clearDrawings}
           />
           <PillBottom
             onImage={() => setOpenModal("image")}

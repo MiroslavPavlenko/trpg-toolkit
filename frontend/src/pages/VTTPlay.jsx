@@ -9,6 +9,7 @@ import MapCanvas from "../components/MapCanvas";
 import PillMapContorl from "../components/PillMapContorl";
 import PillZoom from "../components/PillZoom";
 import PillMeasure from "../components/PillMeasure";
+import PillDraw from "../components/PillDraw";
 import PillRight from "../components/PillRight";
 import PillBottom from "../components/PillBottom";
 import Modal from "../components/Modal";
@@ -26,11 +27,19 @@ function VTTPlay() {
   const mapCanvasRef = useRef(null);
   const [openModal, setOpenModal] = useState(null);
   const [measureMode, setMeasureMode] = useState(null);
+  const [drawingEnabled, setDrawingEnabled] = useState(false);
 
   const {
     encounterId,
     grid: { showGrid, pixelsPerFoot, gridFineTune, gridOffsetX, gridOffsetY },
     backgroundUrl,
+    drawings,
+    drawingTool,
+    setDrawingTool,
+    addDrawing,
+    removeDrawing,
+    undoDrawing,
+    clearDrawings,
     participants,
 
     // DM 56: Player view uses mob visibility by layer.
@@ -159,6 +168,11 @@ function VTTPlay() {
           onMapReady={setMapInfo}
           onMoveToken={moveToken}
           measureMode={measureMode}
+          drawings={drawings}
+          drawingEnabled={drawingEnabled}
+          drawingTool={drawingTool}
+          onAddDrawing={addDrawing}
+          onRemoveDrawing={removeDrawing}
         />
 
         <InitiativeTracker
@@ -188,7 +202,24 @@ function VTTPlay() {
             onZoomIn={() => mapCanvasRef.current?.zoomIn()}
             onZoomOut={() => mapCanvasRef.current?.zoomOut()}
           />
-          <PillMeasure measureMode={measureMode} onSetMeasureMode={setMeasureMode} />
+          <PillMeasure
+            measureMode={measureMode}
+            onSetMeasureMode={(mode) => {
+              setDrawingEnabled(false);
+              setMeasureMode(mode);
+            }}
+          />
+          <PillDraw
+            drawingEnabled={drawingEnabled}
+            drawingTool={drawingTool}
+            onToggleDrawing={(enabled) => {
+              if (enabled) setMeasureMode(null);
+              setDrawingEnabled(enabled);
+            }}
+            onChangeDrawingTool={setDrawingTool}
+            onUndoDrawing={undoDrawing}
+            onClearDrawings={clearDrawings}
+          />
           <PillRight
             onLoot={() => setOpenModal("dollar")}
             onStats={() => setOpenModal("chart")}
