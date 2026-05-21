@@ -29,8 +29,34 @@ const DEFAULT_DRAWING_TOOL = {
   mode: "pen",
 };
 
+const DOWN_STATUS_ID = "down";
+
+const DOWN_STATUS = {
+  instanceId: DOWN_STATUS_ID,
+  statusId: DOWN_STATUS_ID,
+  name: "Down",
+  turnsRemaining: null,
+  stackable: false,
+  effect_summary: "Health is 0. This participant is down until healed above 0 HP.",
+};
+
+
 function getParticipantImageUrl(participant) {
   return participant.image_url ?? participant.imageUrl ?? participant.data?.image_url ?? null;
+}
+
+function tickParticipantStatuses(statuses = []) {
+  return statuses
+    .filter((status) => status.statusId === DOWN_STATUS_ID || status.turnsRemaining !== null)
+    .map((status) => {
+      if (status.statusId === DOWN_STATUS_ID) return status;
+
+      return {
+        ...status,
+        turnsRemaining: Math.max(0, Number(status.turnsRemaining ?? 0) - 1),
+      };
+    })
+    .filter((status) => status.statusId === DOWN_STATUS_ID || status.turnsRemaining > 0);
 }
 
 export function VttSessionProvider({ children }) {
@@ -138,12 +164,7 @@ export function VttSessionProvider({ children }) {
   function tickStatusesForParticipant(id) {
     updateParticipant(id, (participant) => ({
       ...participant,
-      statuses: (participant.statuses ?? [])
-        .map((status) => ({
-          ...status,
-          turnsRemaining: Math.max(0, Number(status.turnsRemaining ?? 0) - 1),
-        }))
-        .filter((status) => status.turnsRemaining > 0),
+      statuses: tickParticipantStatuses(participant.statuses),
     }));
   }
 
@@ -288,6 +309,7 @@ export function VttSessionProvider({ children }) {
   }
 
   function removeParticipant(id) {
+    setStagingParticipants((prev) => prev.filter((p) => p.id !== id));
     setParticipants((prev) => {
       const next = prev.filter((p) => p.id !== id);
       if (next.length === 0) {
@@ -299,6 +321,13 @@ export function VttSessionProvider({ children }) {
     });
     if (combatRef.current) {
       combatRef.current.queue = combatRef.current.queue.filter((e) => e.entity.id !== id);
+      if (combatRef.current.queue.length === 0) {
+        combatRef.current = null;
+        setCombatActive(false);
+        setInitiativeQueue([]);
+        setSelectedParticipant((prev) => (prev?.id === id ? null : prev));
+        return;
+      }
       syncQueue();
     }
     setSelectedParticipant((prev) => (prev?.id === id ? null : prev));
@@ -309,6 +338,22 @@ export function VttSessionProvider({ children }) {
   }
 
   function updateHp(id, calc) {
+    updateParticipant(id, (p) => {
+      const nextHp = calc(p);
+      const currentStatuses = p.statuses ?? [];
+      const hasDownStatus = currentStatuses.some((status) => status.statusId === DOWN_STATUS_ID);
+      let nextStatuses = currentStatuses;
+
+      if (nextHp <= 0 && !hasDownStatus) {
+        nextStatuses = [...currentStatuses, DOWN_STATUS];
+      }
+
+      if (nextHp > 0 && hasDownStatus) {
+        nextStatuses = currentStatuses.filter((status) => status.statusId !== DOWN_STATUS_ID);
+      }
+
+      return { ...p, hit_points: nextHp, statuses: nextStatuses };
+    });
     updateParticipant(id, (p) => ({ ...p, hit_points: calc(p) }));
   }
 

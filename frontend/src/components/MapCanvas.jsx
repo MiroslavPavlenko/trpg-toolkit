@@ -684,7 +684,11 @@ const MapCanvas = forwardRef(
                   <Tag fill="rgba(35, 26, 54, 0.94)" cornerRadius={5} />
                   <Text
                     text={statusPopup.statuses
-                      .map((status) => `${status.name} (${status.turnsRemaining}t)`)
+                      .map((status) =>
+                        status.statusId === "down" || status.turnsRemaining === null
+                          ? status.name
+                          : `${status.name} (${status.turnsRemaining}t)`,
+                      )
                       .join("\n")}
                     padding={7}
                     fontSize={13}
