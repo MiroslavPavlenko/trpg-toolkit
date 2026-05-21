@@ -8,6 +8,12 @@ function getEntryImageUrl(entry) {
   return entry.image_url ?? entry.imageUrl ?? entry.data?.image_url ?? null;
 }
 
+function formatStatusLabel(status) {
+  return status.statusId === "down" || status.turnsRemaining === null
+    ? status.name
+    : `${status.name} (${status.turnsRemaining}t)`;
+}
+
 function HpPopover({ entry, onDamage, onHeal, onClose }) {
   const [amount, setAmount] = useState(1);
   const inputRef = useRef(null);
@@ -110,9 +116,7 @@ function StatusPopover({ entry, onApply, onRemove }) {
         <div className="status-popover__active-list">
           {activeStatuses.map((status) => (
             <div key={status.instanceId} className="status-popover__active-item">
-              <span title={status.effect_summary ?? ""}>
-                {status.name} ({status.turnsRemaining}t)
-              </span>
+              <span title={status.effect_summary ?? ""}>{formatStatusLabel(status)}</span>
               <button
                 className="status-popover__remove-btn"
                 onClick={() => onRemove(status.instanceId)}

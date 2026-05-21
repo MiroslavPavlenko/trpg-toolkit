@@ -60,6 +60,40 @@ function getParticipantImageUrl(participant) {
   return participant.image_url ?? participant.imageUrl ?? participant.data?.image_url ?? null;
 }
 
+
+function makeDrawingId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `drawing-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function distanceToSegment(px, py, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  if (dx === 0 && dy === 0) {
+    return Math.hypot(px - ax, py - ay);
+  }
+
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)));
+  const closestX = ax + t * dx;
+  const closestY = ay + t * dy;
+  return Math.hypot(px - closestX, py - closestY);
+}
+
+function drawingContainsPoint(drawing, pos, hitRadius) {
+  const points = drawing.points ?? [];
+  for (let i = 0; i < points.length - 2; i += 2) {
+    if (
+      distanceToSegment(pos.x, pos.y, points[i], points[i + 1], points[i + 2], points[i + 3]) <=
+      hitRadius
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const MapCanvas = forwardRef(
   (
     {
@@ -72,6 +106,11 @@ const MapCanvas = forwardRef(
       onMapReady,
       onMoveToken,
       measureMode,
+      drawings = [],
+      drawingEnabled = false,
+      drawingTool,
+      onAddDrawing,
+      onRemoveDrawing,
     },
     ref,
   ) => {
@@ -87,6 +126,8 @@ const MapCanvas = forwardRef(
     const [shapeRotation, setShapeRotation] = useState(0);
     const [shapeAimMode, setShapeAimMode] = useState("moving");
     const [statusPopup, setStatusPopup] = useState(null);
+    const [activeDrawing, setActiveDrawing] = useState(null);
+    const activeDrawingRef = useRef(null);
 
     /* --Constants-- */
     const SCALE_BY = 1.05;
@@ -167,6 +208,7 @@ const MapCanvas = forwardRef(
     };
 
     const handleMeasureClick = () => {
+      if (drawingEnabled) return;
       if (measureMode === "distance") {
         const pos = getStagePointerPos();
         if (!pos) return;
@@ -180,6 +222,7 @@ const MapCanvas = forwardRef(
     };
 
     const handleMeasureMouseMove = () => {
+      if (drawingEnabled) return;
       const pos = getStagePointerPos();
       if (!pos) return;
 
@@ -212,6 +255,88 @@ const MapCanvas = forwardRef(
       setMeasureLine(null);
     };
 
+    const eraseDrawingsAt = (pos) => {
+      const eraserRadius = Math.max(10, drawingTool?.strokeWidth ?? 6) * 1.5;
+      const hit = drawings.find((drawing) =>
+        drawingContainsPoint(drawing, pos, eraserRadius + (drawing.strokeWidth ?? 0) / 2),
+      );
+      if (hit) {
+        onRemoveDrawing?.(hit.id);
+      }
+    };
+
+    const handleDrawingStart = () => {
+      if (!drawingEnabled) return;
+      const pos = getStagePointerPos();
+      if (!pos) return;
+
+      if (drawingTool?.mode === "eraser") {
+        eraseDrawingsAt(pos);
+        return;
+      }
+
+      const nextDrawing = {
+        id: makeDrawingId(),
+        tool: "pen",
+        color: drawingTool?.color ?? "#facc15",
+        strokeWidth: drawingTool?.strokeWidth ?? 6,
+        anchor: { x: pos.x, y: pos.y },
+        points: [pos.x, pos.y],
+      };
+      activeDrawingRef.current = nextDrawing;
+      setActiveDrawing(nextDrawing);
+    };
+
+    const handleStageMouseMove = (e) => {
+      if (drawingEnabled) {
+        handleDrawingMove(e);
+        return;
+      }
+      handleMeasureMouseMove();
+    };
+
+    const handleDrawingMove = (e) => {
+      if (!drawingEnabled) return;
+      const pos = getStagePointerPos();
+      if (!pos) return;
+
+      if (drawingTool?.mode === "eraser") {
+        eraseDrawingsAt(pos);
+        return;
+      }
+
+      setActiveDrawing((prev) => {
+        if (!prev) return null;
+        if (e?.evt?.shiftKey) {
+          const anchor = prev.anchor ?? { x: prev.points[0], y: prev.points[1] };
+          const nextDrawing = {
+            ...prev,
+            anchor,
+            points: [anchor.x, anchor.y, pos.x, pos.y],
+          };
+          activeDrawingRef.current = nextDrawing;
+          return nextDrawing;
+        }
+        const nextDrawing = {
+          ...prev,
+          points: [...prev.points, pos.x, pos.y],
+        };
+        activeDrawingRef.current = nextDrawing;
+        return nextDrawing;
+      });
+    };
+
+    const handleDrawingEnd = () => {
+      const drawing = activeDrawingRef.current;
+      if (!drawing) return;
+      if (drawing.points.length >= 4) {
+        const { anchor, ...finishedDrawing } = drawing;
+        onAddDrawing?.(finishedDrawing);
+      }
+      activeDrawingRef.current = null;
+      setActiveDrawing(null);
+    };
+
     useImperativeHandle(ref, () => ({
       zoomIn: () => zoomBy(SCALE_BY),
       zoomOut: () => zoomBy(1 / SCALE_BY),
@@ -233,11 +358,9 @@ const MapCanvas = forwardRef(
       const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
 
       for (let x = offX; x <= drawWidth; x += gridSize) {
-        const px = Math.round(x);
         gridLine.push({ points: [x, 0, x, drawHeight], key: `v${x}` });
       }
       for (let y = offY; y <= drawHeight; y += gridSize) {
-        const py = Math.round(y);
         gridLine.push({ points: [0, y, drawWidth, y], key: `h${y}` });
       }
     }
@@ -365,7 +488,7 @@ const MapCanvas = forwardRef(
         style={{
           width: "100%",
           height: "100%",
-          cursor: measureMode ? "crosshair" : "default",
+          cursor: drawingEnabled ? "crosshair" : measureMode ? "crosshair" : "default",
         }}
       >
         {imgElement && (
@@ -373,11 +496,16 @@ const MapCanvas = forwardRef(
             ref={stageRef}
             width={containerSize.width}
             height={containerSize.height}
-            draggable={measureMode === null}
+            draggable={measureMode === null && !drawingEnabled}
             onWheel={handleWheel}
             onClick={handleMeasureClick}
             onTap={handleMeasureClick}
-            onMouseMove={handleMeasureMouseMove}
+            onMouseMove={handleStageMouseMove}
+            onMouseDown={handleDrawingStart}
+            onTouchStart={handleDrawingStart}
+            onTouchMove={handleDrawingMove}
+            onMouseUp={handleDrawingEnd}
+            onTouchEnd={handleDrawingEnd}
             onContextmenu={handleMeasureContextMenu}
             dragBoundFunc={(pos) => {
               const stage = stageRef.current;
@@ -391,6 +519,19 @@ const MapCanvas = forwardRef(
                 gridLine.map((line) => (
                   <Line key={line.key} points={line.points} stroke={GRID_COLOR} strokeWidth={2} />
                 ))}
+
+              {[...drawings, activeDrawing].filter(Boolean).map((drawing) => (
+                <Line
+                  key={drawing.id}
+                  points={drawing.points}
+                  stroke={drawing.color}
+                  strokeWidth={drawing.strokeWidth}
+                  lineCap="round"
+                  lineJoin="round"
+                  tension={0.35}
+                  listening={false}
+                />
+              ))}
 
               {participants.map((p) => {
                 if (!p.cell) {
@@ -419,7 +560,7 @@ const MapCanvas = forwardRef(
                     key={p.id}
                     x={renderX}
                     y={renderY}
-                    draggable={measureMode === null}
+                    draggable={measureMode === null && !drawingEnabled}
                     onDragStart={(e) => {
                       e.cancelBubble = true;
                     }}
@@ -544,7 +685,11 @@ const MapCanvas = forwardRef(
                   <Tag fill="rgba(35, 26, 54, 0.94)" cornerRadius={5} />
                   <Text
                     text={statusPopup.statuses
-                      .map((status) => `${status.name} (${status.turnsRemaining}t)`)
+                      .map((status) =>
+                        status.statusId === "down" || status.turnsRemaining === null
+                          ? status.name
+                          : `${status.name} (${status.turnsRemaining}t)`,
+                      )
                       .join("\n")}
                     padding={7}
                     fontSize={13}

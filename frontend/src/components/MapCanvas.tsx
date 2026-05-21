@@ -544,7 +544,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, Props>(function MapCanvas(
                   text={statusPopup.statuses
                     .map(
                       (s) =>
-                        `${s.name} (${s.turnsRemaining}t)${s.effect_summary ? `\n  ${s.effect_summary}` : ""}`,
+                        `${s.statusId === "down" || s.turnsRemaining === null ? s.name : `${s.name} (${s.turnsRemaining}t)`}${s.effect_summary ? `\n  ${s.effect_summary}` : ""}`,
                     )
                     .join("\n\n")}
                   padding={8}

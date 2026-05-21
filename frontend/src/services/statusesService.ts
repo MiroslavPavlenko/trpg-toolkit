@@ -12,7 +12,7 @@ export type AppliedStatus = {
   instanceId: string;
   statusId: string;
   name: string;
-  turnsRemaining: number;
+  turnsRemaining: number | null;
   effect_summary: string | null;
 };
 
