@@ -33,12 +33,12 @@ export function EncountersProvider({ children }) {
     }
   }, [encounters]);
 
-  function addEncounter(campaignId, title) {
+  function addEncounter(campaignId, title, vttState = null) {
     const newEncounter = {
       id: crypto.randomUUID(),
       title,
       campaignId,
-      vttState: null,
+      vttState,
     };
     setEncounters((prev) => [...prev, newEncounter]);
     linkEncounter(campaignId, newEncounter.id);
