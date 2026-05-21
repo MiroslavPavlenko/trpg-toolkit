@@ -12,6 +12,11 @@ type Entry = {
   hit_points: number;
   initiativeTotal?: number;
   statuses?: AppliedStatus[];
+  image_url?: string | null;
+  imageUrl?: string | null;
+  data?: {
+    image_url?: string | null;
+  };
 };
 
 type HpPopoverProps = {
@@ -34,6 +39,10 @@ type Props = {
   onApplyStatus: (id: string, status: AppliedStatus) => void;
   onRemoveStatus: (id: string, instanceId: string) => void;
 };
+
+function getEntryImageUrl(entry: Entry) {
+  return entry.image_url ?? entry.imageUrl ?? entry.data?.image_url ?? null;
+}
 
 function HpPopover({ entry, onDamage, onHeal, onClose }: HpPopoverProps) {
   const [amount, setAmount] = useState(1);
@@ -263,7 +272,7 @@ function InitiativeTracker({
             role="presentation"
           >
             <CharacterItem
-              character={{ name: entry.name, type: entry.type }}
+              character={{ name: entry.name, type: entry.type, imageUrl: getEntryImageUrl(entry) }}
               isActive={combatActive && i === 0}
               onClick={() => {
                 closeAll();

@@ -55,6 +55,11 @@ function tokensOverLap(aCell, aSize, bCell, bSize) {
     aCell.y + aSize > bCell.y
   );
 }
+
+function getParticipantImageUrl(participant) {
+  return participant.image_url ?? participant.imageUrl ?? participant.data?.image_url ?? null;
+}
+
 const MapCanvas = forwardRef(
   (
     {
@@ -76,6 +81,7 @@ const MapCanvas = forwardRef(
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const [imgSize, setImgSize] = useState(null); // { width, height } of the loaded map's natural pixels
     const [imgElement, setImgElement] = useState(null); // HTMLImageElement handed to <KonvaImage>
+    const [tokenImages, setTokenImages] = useState({});
     const [measureLine, setMeasureLine] = useState(null);
     const [shapePos, setShapePos] = useState(null);
     const [shapeRotation, setShapeRotation] = useState(0);
@@ -277,6 +283,32 @@ const MapCanvas = forwardRef(
       img.src = backgroundUrl;
     }, [backgroundUrl]);
 
+    useEffect(() => {
+      let cancelled = false;
+      const urls = [...new Set(participants.map(getParticipantImageUrl).filter(Boolean))];
+
+      urls.forEach((url) => {
+        if (url in tokenImages) return;
+
+        const img = new Image();
+        img.onload = () => {
+          if (!cancelled) {
+            setTokenImages((prev) => ({ ...prev, [url]: img }));
+          }
+        };
+        img.onerror = () => {
+          if (!cancelled) {
+            setTokenImages((prev) => ({ ...prev, [url]: null }));
+          }
+        };
+        img.src = url;
+      });
+
+      return () => {
+        cancelled = true;
+      };
+    }, [participants, tokenImages]);
+
     // Keep windowSize state in sync with the browser viewport.
     // Cleanup removes the listener when the component unmounts.
     useEffect(() => {
@@ -376,6 +408,8 @@ const MapCanvas = forwardRef(
                 const statusCount = activeStatuses.length;
                 const statusBadgeRadius = Math.max(8, Math.min(13, radius * 0.34));
                 const statusBadgeOffset = radius * 0.66;
+                const tokenImageUrl = getParticipantImageUrl(p);
+                const tokenImage = tokenImageUrl ? tokenImages[tokenImageUrl] : null;
 
                 const mapCols = Math.floor(drawWidth / gridSize);
                 const mapRows = Math.floor(drawHeight / gridSize);
@@ -441,11 +475,30 @@ const MapCanvas = forwardRef(
                         listening={false}
                       />
                     )}
+                    <Circle radius={radius} fill={p.type === "monster" ? "#dd1414" : "#3498db"} />
+                    {tokenImage && (
+                      <Group
+                        clipFunc={(ctx) => {
+                          ctx.arc(0, 0, radius, 0, Math.PI * 2, false);
+                        }}
+                        listening={false}
+                      >
+                        <KonvaImage
+                          image={tokenImage}
+                          x={-radius}
+                          y={-radius}
+                          width={radius * 2}
+                          height={radius * 2}
+                          listening={false}
+                        />
+                      </Group>
+                    )}
                     <Circle
                       radius={radius}
-                      fill={p.type === "monster" ? "#dd1414" : "#3498db"}
+                      fill="transparent"
                       stroke={statusCount > 0 ? "#f5d0fe" : "black"}
                       strokeWidth={statusCount > 0 ? 2 : 1}
+                      listening={false}
                     />
                     {statusCount > 0 && (
                       <>

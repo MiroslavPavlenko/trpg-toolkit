@@ -4,6 +4,10 @@ import CharacterItem from "./CharacterItem";
 import { fetchAllStatuses } from "../services/statusesService";
 import "../style/InitiativeTracker.css";
 
+function getEntryImageUrl(entry) {
+  return entry.image_url ?? entry.imageUrl ?? entry.data?.image_url ?? null;
+}
+
 function HpPopover({ entry, onDamage, onHeal, onClose }) {
   const [amount, setAmount] = useState(1);
   const inputRef = useRef(null);
@@ -223,7 +227,7 @@ function InitiativeTracker({
         return (
           <div key={entry.id} className="initiative-entry" onClick={(e) => e.stopPropagation()}>
             <CharacterItem
-              character={{ name: entry.name, type: entry.type }}
+              character={{ name: entry.name, type: entry.type, imageUrl: getEntryImageUrl(entry) }}
               isActive={combatActive && i === 0}
               onClick={() => {
                 closeAll();

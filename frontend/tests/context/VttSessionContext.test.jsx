@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { CampaignsProvider } from "@/context/CampaignsContext";
 import { EncountersProvider, useEncounters } from "@/context/EncountersContext";
@@ -8,6 +8,14 @@ import { serializeVttState } from "@/features/vtt/encounter/serialize";
 
 vi.mock("@/services/vttStorage", () => ({
   getSignedUrl: vi.fn(async () => "blob://mock-url"),
+}));
+
+vi.mock("@/services/monsters55Search", () => ({
+  fetchMonster55ByName: vi.fn(async (name) => ({
+    name,
+    image_url: `https://example.test/${name.toLowerCase()}.png`,
+    hp: 7,
+  })),
 }));
 
 function makeWrapper(initialEntries = ["/vtt/edit"]) {
@@ -181,6 +189,26 @@ describe("VttSessionContext", () => {
     act(() => result.current.addParticipant(makeParticipant({ id: "p1" })));
     act(() => result.current.moveToken("p1", { x: 4, y: 7 }));
     expect(result.current.participants[0].cell).toEqual({ x: 4, y: 7 });
+  });
+
+  it("enriches monster participants with Supabase image_url when missing", async () => {
+    const { result } = renderHook(() => useVttSession(), { wrapper: makeWrapper() });
+
+    act(() =>
+      result.current.addParticipant(
+        makeParticipant({
+          id: "goblin-1",
+          name: "Goblin",
+          type: "monster",
+          data: {},
+        }),
+      ),
+    );
+
+    await waitFor(() => {
+      expect(result.current.participants[0].image_url).toBe("https://example.test/goblin.png");
+    });
+    expect(result.current.participants[0].data.image_url).toBe("https://example.test/goblin.png");
   });
 
   it("damage clamps at 0", () => {

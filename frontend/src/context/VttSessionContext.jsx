@@ -5,6 +5,7 @@ import { deserializeVttState } from "../features/vtt/encounter/deserialize";
 import { serializeVttState } from "../features/vtt/encounter/serialize";
 import { getSignedUrl } from "../services/vttStorage";
 import { CombatTracker } from "../services/combatTracker";
+import { fetchMonster55ByName } from "../services/monsters55Search";
 
 const VttSessionContext = createContext(null);
 
@@ -21,6 +22,10 @@ const DEFAULT_MOB_VISIBILITY_BY_LAYER = {
   2: false,
   3: false,
 };
+
+function getParticipantImageUrl(participant) {
+  return participant.image_url ?? participant.imageUrl ?? participant.data?.image_url ?? null;
+}
 
 export function VttSessionProvider({ children }) {
   const [searchParams] = useSearchParams();
@@ -42,6 +47,7 @@ export function VttSessionProvider({ children }) {
   // --- Combat: combatRef is the live source of truth;
 
   const combatRef = useRef(null);
+  const imageLookupRef = useRef(new Set());
   const [combatActive, setCombatActive] = useState(false);
   const [initiativeQueue, setInitiativeQueue] = useState([]);
 
@@ -75,6 +81,51 @@ export function VttSessionProvider({ children }) {
 
     setSelectedParticipant((prev) => (prev?.id === id ? updater(prev) : prev));
   }
+
+  useEffect(() => {
+    const missingImageParticipants = participants.filter((participant) => {
+      if (participant.type !== "monster") return false;
+      if (getParticipantImageUrl(participant)) return false;
+      if (imageLookupRef.current.has(participant.id)) return false;
+      return Boolean(participant.name);
+    });
+
+    if (missingImageParticipants.length === 0) return;
+
+    let cancelled = false;
+    missingImageParticipants.forEach((participant) => imageLookupRef.current.add(participant.id));
+
+    Promise.allSettled(
+      missingImageParticipants.map((participant) =>
+        fetchMonster55ByName(participant.name).then((monster) => ({
+          participantId: participant.id,
+          monster,
+        })),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+
+      results.forEach((result) => {
+        if (result.status !== "fulfilled") return;
+
+        const { participantId, monster } = result.value;
+        if (!monster.image_url) return;
+
+        updateParticipant(participantId, (participant) => ({
+          ...participant,
+          image_url: monster.image_url,
+          data: {
+            ...participant.data,
+            ...monster,
+          },
+        }));
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [participants]);
 
   function tickStatusesForParticipant(id) {
     updateParticipant(id, (participant) => ({
