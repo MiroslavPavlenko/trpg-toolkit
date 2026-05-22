@@ -1,14 +1,45 @@
-import { useState } from "react";
-import { LuImage, LuMap, LuUserPlus, LuTable, LuPlus, LuSwords } from "react-icons/lu";
+import { useState, useRef, useEffect } from "react";
+import { LuImage, LuMap, LuUserPlus, LuTable, LuPlus, LuSwords, LuSave } from "react-icons/lu";
 import "../style/PillButton.css";
 
-function PillBottom({ onImage, onMap, onAddCharacter, onTables, onEnemyGenerator }) {
+function PillBottom({
+  onImage,
+  onMap,
+  onAddCharacter,
+  onTables,
+  onEnemyGenerator,
+  onSaveEncounter,
+}) {
   const [open, setOpen] = useState(false);
+  const closeTimerRef = useRef(null);
+
+  function cancelPendingClose() {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }
+
+  function scheduleClose() {
+    cancelPendingClose();
+    closeTimerRef.current = setTimeout(() => {
+      setOpen(false);
+      closeTimerRef.current = null;
+    }, 100);
+  }
+
+  function openNow() {
+    cancelPendingClose();
+    setOpen(true);
+  }
+
+  useEffect(() => () => cancelPendingClose(), []);
 
   return (
     <div
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      data-testid="pill-bottom"
+      onMouseEnter={openNow}
+      onMouseLeave={scheduleClose}
       style={{
         position: "relative",
         display: "flex",
@@ -20,6 +51,8 @@ function PillBottom({ onImage, onMap, onAddCharacter, onTables, onEnemyGenerator
     >
       {open && (
         <div
+          onMouseEnter={openNow}
+          onMouseLeave={scheduleClose}
           style={{
             position: "absolute",
             right: "0%",
@@ -37,21 +70,36 @@ function PillBottom({ onImage, onMap, onAddCharacter, onTables, onEnemyGenerator
             whiteSpace: "nowrap",
           }}
         >
-          <button onClick={onImage} className="icon-button" aria-label="image">
-            <LuImage />
-          </button>
-          <button onClick={onMap} className="icon-button" aria-label="map">
-            <LuMap />
-          </button>
-          <button onClick={onAddCharacter} className="icon-button" aria-label="add character">
-            <LuUserPlus />
-          </button>
-          <button onClick={onEnemyGenerator} className="icon-button" aria-label="enemy generator">
-            <LuSwords />
-          </button>
-          <button onClick={onTables} className="icon-button" aria-label="Lookup Tables">
-            <LuTable />
-          </button>
+          {onImage && (
+            <button onClick={onImage} className="icon-button" aria-label="image">
+              <LuImage />
+            </button>
+          )}
+          {onMap && (
+            <button onClick={onMap} className="icon-button" aria-label="map">
+              <LuMap />
+            </button>
+          )}
+          {onAddCharacter && (
+            <button onClick={onAddCharacter} className="icon-button" aria-label="add character">
+              <LuUserPlus />
+            </button>
+          )}
+          {onEnemyGenerator && (
+            <button onClick={onEnemyGenerator} className="icon-button" aria-label="enemy generator">
+              <LuSwords />
+            </button>
+          )}
+          {onTables && (
+            <button onClick={onTables} className="icon-button" aria-label="Lookup Tables">
+              <LuTable />
+            </button>
+          )}
+          {onSaveEncounter && (
+            <button onClick={onSaveEncounter} className="icon-button" aria-label="save encounter">
+              <LuSave />
+            </button>
+          )}
         </div>
       )}
       <LuPlus />

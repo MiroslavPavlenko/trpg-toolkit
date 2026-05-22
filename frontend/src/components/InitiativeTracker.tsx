@@ -12,6 +12,11 @@ type Entry = {
   hit_points: number;
   initiativeTotal?: number;
   statuses?: AppliedStatus[];
+  image_url?: string | null;
+  imageUrl?: string | null;
+  data?: {
+    image_url?: string | null;
+  };
 };
 
 type HpPopoverProps = {
@@ -34,6 +39,16 @@ type Props = {
   onApplyStatus: (id: string, status: AppliedStatus) => void;
   onRemoveStatus: (id: string, instanceId: string) => void;
 };
+
+function getEntryImageUrl(entry: Entry) {
+  return entry.image_url ?? entry.imageUrl ?? entry.data?.image_url ?? null;
+}
+
+function formatStatusLabel(status: AppliedStatus) {
+  return status.statusId === "down" || status.turnsRemaining === null
+    ? status.name
+    : `${status.name} (${status.turnsRemaining}t)`;
+}
 
 function HpPopover({ entry, onDamage, onHeal, onClose }: HpPopoverProps) {
   const [amount, setAmount] = useState(1);
@@ -122,9 +137,7 @@ function StatusPopover({
         <div className="status-popover__active-list">
           {activeStatuses.map((s) => (
             <div key={s.instanceId} className="status-popover__active-item">
-              <span>
-                {s.name} ({s.turnsRemaining}t)
-              </span>
+              <span>{formatStatusLabel(s)}</span>
               <button
                 className="status-popover__remove-btn"
                 onClick={() => onRemove(s.instanceId)}
@@ -263,7 +276,7 @@ function InitiativeTracker({
             role="presentation"
           >
             <CharacterItem
-              character={{ name: entry.name, type: entry.type }}
+              character={{ name: entry.name, type: entry.type, imageUrl: getEntryImageUrl(entry) }}
               isActive={combatActive && i === 0}
               onClick={() => {
                 closeAll();

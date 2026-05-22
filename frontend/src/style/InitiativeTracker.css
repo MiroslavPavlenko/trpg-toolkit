@@ -129,3 +129,103 @@
 .hp-popover__btn--heal {
   background: #27ae60;
 }
+
+.status-popover {
+  position: absolute;
+  left: 64px;
+  top: 0;
+  width: 220px;
+  max-width: 72vw;
+  background: #fff;
+  border: 1px solid #d2d6dc;
+  border-radius: 8px;
+  padding: 10px;
+  z-index: 100;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-popover__title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.status-popover__active-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 120px;
+  overflow: auto;
+}
+
+.status-popover__active-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: #eef0f5;
+  color: #222;
+  font-size: 0.78rem;
+}
+
+.status-popover__remove-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: #d93f3f;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.status-popover__select,
+.status-popover__input {
+  width: 100%;
+  border: 1px solid #b8bec8;
+  border-radius: 6px;
+  padding: 5px 7px;
+  box-sizing: border-box;
+  font-size: 0.85rem;
+}
+
+.status-popover__row {
+  display: grid;
+  grid-template-columns: 1fr 72px;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-popover__label {
+  color: #333;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.status-popover__summary {
+  margin: 0;
+  color: #4c5664;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.status-popover__apply-btn {
+  border: none;
+  border-radius: 6px;
+  background: #30343b;
+  color: #fff;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.status-popover__apply-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
