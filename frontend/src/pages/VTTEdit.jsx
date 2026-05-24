@@ -8,6 +8,7 @@ import TopBar from "../components/TopBar";
 import MapCanvas from "../components/MapCanvas";
 import PillMapContorl from "../components/PillMapContorl";
 import PillZoom from "../components/PillZoom";
+import PillMapRotation from "../components/PillMapRotation";
 import PillGrid from "../components/PillGrid";
 import PillDraw from "../components/PillDraw";
 import PillBottom from "../components/PillBottom";
@@ -35,6 +36,10 @@ function VTTEdit() {
     setGridFineTune,
     setGridOffsetX,
     setGridOffsetY,
+    mapRotation,
+    mapRotationStep,
+    setMapRotation,
+    setMapRotationStep,
     backgroundUrl,
     setBackground,
     drawings,
@@ -158,6 +163,7 @@ function VTTEdit() {
         <MapCanvas
           ref={mapCanvasRef}
           backgroundUrl={backgroundUrl}
+          mapRotation={mapRotation}
           showGrid={showGrid}
           gridSize={gridSize}
           gridOffsetX={gridOffsetX}
@@ -268,6 +274,12 @@ function VTTEdit() {
           <PillZoom
             onZoomIn={() => mapCanvasRef.current?.zoomIn()}
             onZoomOut={() => mapCanvasRef.current?.zoomOut()}
+          />
+          <PillMapRotation
+            mapRotation={mapRotation}
+            rotationStep={mapRotationStep}
+            onChangeMapRotation={setMapRotation}
+            onChangeRotationStep={setMapRotationStep}
           />
           <PillGrid
             showGrid={showGrid}

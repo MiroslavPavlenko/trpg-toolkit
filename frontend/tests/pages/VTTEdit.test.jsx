@@ -71,7 +71,16 @@ describe("<VTTEdit />", () => {
     renderAt();
 
     await openPillBottom(user);
+    await user.hover(screen.getByTestId("pill-map-rotation"));
 
+    expect(screen.getByRole("slider", { name: /map rotation/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /rotate map counterclockwise/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /rotate map clockwise/i })).toBeInTheDocument();
+    expect(screen.getByRole("spinbutton", { name: /map rotation shortcut degrees/i })).toHaveValue(
+      15,
+    );
     expect(screen.getByRole("button", { name: /^image$/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^map$/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /add character/i })).toBeInTheDocument();

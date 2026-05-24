@@ -8,6 +8,7 @@ const sample = () => ({
   gridFineTune: 2,
   gridOffsetX: 4,
   gridOffsetY: -3,
+  mapRotation: 270,
   backgroundRef: { bucket: "maps", name: "1700000000-tavern.jpg" },
   drawings: [
     {

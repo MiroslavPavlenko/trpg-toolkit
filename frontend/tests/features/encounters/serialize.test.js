@@ -8,6 +8,7 @@ const sampleVttState = () => ({
   gridFineTune: 2,
   gridOffsetX: 0,
   gridOffsetY: 0,
+  mapRotation: 90,
   backgroundRef: { bucket: "maps", name: "1700000000-tavern.jpg" },
   participants: [
     {
@@ -62,11 +63,12 @@ describe("serializeVttState", () => {
     expect(json.activeLayerId).toBe(json.layers[0].id);
   });
 
-  it("nests participants, backgroundRef, and combat under the active layer", () => {
+  it("nests participants, map settings, and combat under the active layer", () => {
     const json = serializeVttState(sampleVttState());
     const layer = json.layers[0];
 
     expect(layer.map.backgroundRef).toEqual({ bucket: "maps", name: "1700000000-tavern.jpg" });
+    expect(layer.map.rotation).toBe(90);
     expect(layer.participants).toHaveLength(2);
     expect(layer.combat.round).toBe(2);
     expect(layer.combat.queue).toEqual([

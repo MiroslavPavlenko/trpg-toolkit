@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useSearchParams } from "react-router-dom";
 import { useEncounters } from "./EncountersContext";
 import { deserializeVttState } from "../features/vtt/encounter/deserialize";
@@ -17,6 +25,9 @@ const DEFAULT_GRID = {
   gridOffsetY: 0,
 };
 
+const DEFAULT_MAP_ROTATION = 0;
+const DEFAULT_MAP_ROTATION_STEP = 15;
+
 const DEFAULT_MOB_VISIBILITY_BY_LAYER = {
   1: false,
   2: false,
@@ -28,6 +39,8 @@ const DEFAULT_DRAWING_TOOL = {
   strokeWidth: 6,
   mode: "pen",
 };
+
+const MAX_UNDO_ACTIONS = 100;
 
 const DOWN_STATUS_ID = "down";
 
@@ -65,6 +78,8 @@ export function VttSessionProvider({ children }) {
 
   // --- Persistable state (mirrors serialized JSON shape)
   const [grid, setGrid] = useState(DEFAULT_GRID);
+  const [mapRotation, setMapRotation] = useState(DEFAULT_MAP_ROTATION);
+  const [mapRotationStep, setMapRotationStep] = useState(DEFAULT_MAP_ROTATION_STEP);
   const [backgroundRef, setBackgroundRef] = useState(null);
   const [drawings, setDrawings] = useState([]);
   const [drawingTool, setDrawingTool] = useState(DEFAULT_DRAWING_TOOL);
@@ -90,6 +105,17 @@ export function VttSessionProvider({ children }) {
   const [selectedParticipant, setSelectedParticipant] = useState(null);
 
   const hydratedForId = useRef(null);
+  const undoStackRef = useRef([]);
+  const undoLastActionRef = useRef(() => {});
+
+  const pushUndoAction = useCallback((action) => {
+    undoStackRef.current = [...undoStackRef.current.slice(-(MAX_UNDO_ACTIONS - 1)), action];
+  }, []);
+
+  function updateParticipantCell(id, cell) {
+    setParticipants((prev) => prev.map((p) => (p.id === id ? { ...p, cell } : p)));
+    setSelectedParticipant((prev) => (prev?.id === id ? { ...prev, cell } : prev));
+  }
 
   function syncQueue() {
     if (!combatRef.current) {
@@ -189,9 +215,11 @@ export function VttSessionProvider({ children }) {
       gridOffsetY: restored.gridOffsetY,
     });
     setBackgroundRef(restored.backgroundRef);
+    setMapRotation(restored.mapRotation ?? DEFAULT_MAP_ROTATION);
     setBackgroundUrl(null);
     setDrawings(restored.drawings ?? []);
     setParticipants(restored.participants);
+    undoStackRef.current = [];
 
     if (restored.combat.active && restored.participants.length > 0) {
       const tracker = new CombatTracker(restored.participants);
@@ -242,6 +270,35 @@ export function VttSessionProvider({ children }) {
     setGrid((g) => ({ ...g, gridOffsetX: typeof v === "function" ? v(g.gridOffsetX) : v }));
   const setGridOffsetY = (v) =>
     setGrid((g) => ({ ...g, gridOffsetY: typeof v === "function" ? v(g.gridOffsetY) : v }));
+  const setMapRotationDegrees = useCallback(
+    (v) =>
+      setMapRotation((rotation) => {
+        const next = typeof v === "function" ? v(rotation) : v;
+        const numeric = Number(next);
+        const normalized = !Number.isFinite(numeric)
+          ? DEFAULT_MAP_ROTATION
+          : numeric === 360
+            ? 360
+            : ((numeric % 360) + 360) % 360;
+        if (normalized !== rotation) {
+          pushUndoAction(() => setMapRotation(rotation));
+        }
+        return normalized;
+      }),
+    [pushUndoAction],
+  );
+  const setMapRotationStepDegrees = (v) => {
+    const numeric = Number(typeof v === "function" ? v(mapRotationStep) : v);
+    if (!Number.isFinite(numeric)) return;
+    setMapRotationStep(Math.max(1, Math.min(360, Math.round(numeric))));
+  };
+
+  const rotateMapByDegrees = useCallback(
+    (delta) => {
+      setMapRotationDegrees((rotation) => rotation + delta);
+    },
+    [setMapRotationDegrees],
+  );
 
   function setBackground(url, name) {
     setBackgroundUrl(url);
@@ -249,6 +306,9 @@ export function VttSessionProvider({ children }) {
   }
 
   function addDrawing(drawing) {
+    pushUndoAction(() => {
+      setDrawings((prev) => prev.filter((item) => item.id !== drawing.id));
+    });
     setDrawings((prev) => [...prev, drawing]);
   }
 
@@ -257,12 +317,67 @@ export function VttSessionProvider({ children }) {
   }
 
   function removeDrawing(id) {
-    setDrawings((prev) => prev.filter((drawing) => drawing.id !== id));
+    setDrawings((prev) => {
+      const removedIndex = prev.findIndex((drawing) => drawing.id === id);
+      if (removedIndex === -1) return prev;
+      const removedDrawing = prev[removedIndex];
+      pushUndoAction(() => {
+        setDrawings((current) => [
+          ...current.slice(0, removedIndex),
+          removedDrawing,
+          ...current.slice(removedIndex),
+        ]);
+      });
+      return prev.filter((drawing) => drawing.id !== id);
+    });
   }
 
   function clearDrawings() {
-    setDrawings([]);
+    setDrawings((prev) => {
+      if (prev.length > 0) {
+        pushUndoAction(() => setDrawings(prev));
+      }
+      return [];
+    });
   }
+
+  function undoLastAction() {
+    const action = undoStackRef.current.at(-1);
+    if (!action) return;
+    undoStackRef.current = undoStackRef.current.slice(0, -1);
+    action();
+  }
+
+  undoLastActionRef.current = undoLastAction;
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      const target = event.target;
+      const tagName = target?.tagName?.toLowerCase();
+      const isEditable =
+        target?.isContentEditable ||
+        tagName === "textarea" ||
+        (tagName === "input" && target.type !== "range");
+
+      if (isEditable) return;
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        undoLastActionRef.current();
+        return;
+      }
+
+      if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+        const key = event.key.toLowerCase();
+        if (key === "q" || key === "e") {
+          event.preventDefault();
+          rotateMapByDegrees(key === "q" ? -mapRotationStep : mapRotationStep);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mapRotationStep, rotateMapByDegrees]);
 
   function toggleMobVisibilityForLayer(layer) {
     setMobVisibilityByLayer((prev) => ({
@@ -333,7 +448,16 @@ export function VttSessionProvider({ children }) {
   }
 
   function moveToken(id, cell) {
-    setParticipants((prev) => prev.map((p) => (p.id === id ? { ...p, cell } : p)));
+    setParticipants((prev) => {
+      const participant = prev.find((p) => p.id === id);
+      if (!participant) return prev;
+      const previousCell = participant.cell ?? null;
+      if (previousCell?.x === cell.x && previousCell?.y === cell.y) return prev;
+
+      pushUndoAction(() => updateParticipantCell(id, previousCell));
+      return prev.map((p) => (p.id === id ? { ...p, cell } : p));
+    });
+    setSelectedParticipant((prev) => (prev?.id === id ? { ...prev, cell } : prev));
   }
 
   function updateHp(id, calc) {
@@ -420,6 +544,7 @@ export function VttSessionProvider({ children }) {
     () =>
       serializeVttState({
         ...grid,
+        mapRotation,
         backgroundRef,
         drawings,
         participants,
@@ -434,7 +559,7 @@ export function VttSessionProvider({ children }) {
         },
         viewport: null,
       }),
-    [grid, backgroundRef, drawings, participants, combatActive, initiativeQueue],
+    [grid, mapRotation, backgroundRef, drawings, participants, combatActive, initiativeQueue],
   );
 
   function saveCurrent(targetId) {
@@ -452,6 +577,11 @@ export function VttSessionProvider({ children }) {
     setGridOffsetX,
     setGridOffsetY,
     backgroundRef,
+    mapRotation,
+    mapRotationStep,
+    setMapRotation: setMapRotationDegrees,
+    setMapRotationStep: setMapRotationStepDegrees,
+    rotateMapByDegrees,
     setBackground,
     drawings,
     drawingTool,
@@ -460,6 +590,7 @@ export function VttSessionProvider({ children }) {
     removeDrawing,
     undoDrawing,
     clearDrawings,
+    undoLastAction,
     participants,
 
     // DM 56: Mob visibility controls for map layers.

@@ -8,6 +8,7 @@ import TopBar from "../components/TopBar";
 import MapCanvas from "../components/MapCanvas";
 import PillMapContorl from "../components/PillMapContorl";
 import PillZoom from "../components/PillZoom";
+import PillMapRotation from "../components/PillMapRotation";
 import PillMeasure from "../components/PillMeasure";
 import PillDraw from "../components/PillDraw";
 import PillRight from "../components/PillRight";
@@ -36,6 +37,10 @@ function VTTPlay() {
   const {
     encounterId,
     grid: { showGrid, pixelsPerFoot, gridFineTune, gridOffsetX, gridOffsetY },
+    mapRotation,
+    mapRotationStep,
+    setMapRotation,
+    setMapRotationStep,
     backgroundUrl,
     drawings,
     drawingTool,
@@ -242,6 +247,7 @@ function VTTPlay() {
         <MapCanvas
           ref={mapCanvasRef}
           backgroundUrl={backgroundUrl}
+          mapRotation={mapRotation}
           showGrid={showGrid}
           gridSize={gridSize}
           gridOffsetX={gridOffsetX}
@@ -283,6 +289,12 @@ function VTTPlay() {
           <PillZoom
             onZoomIn={() => mapCanvasRef.current?.zoomIn()}
             onZoomOut={() => mapCanvasRef.current?.zoomOut()}
+          />
+          <PillMapRotation
+            mapRotation={mapRotation}
+            rotationStep={mapRotationStep}
+            onChangeMapRotation={setMapRotation}
+            onChangeRotationStep={setMapRotationStep}
           />
           <PillMeasure
             measureMode={measureMode}

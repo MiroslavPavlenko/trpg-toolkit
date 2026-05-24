@@ -21,6 +21,7 @@ export function serializeVttState(state) {
         visible: true,
         map: {
           backgroundRef: state.backgroundRef ?? null,
+          rotation: state.mapRotation ?? 0,
         },
         drawings: (state.drawings ?? []).map((drawing) => ({
           ...drawing,

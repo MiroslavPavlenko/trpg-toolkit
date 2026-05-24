@@ -97,6 +97,7 @@ const MapCanvas = forwardRef(
   (
     {
       backgroundUrl,
+      mapRotation = 0,
       showGrid,
       gridSize = 50,
       gridOffsetX = 0,
@@ -131,6 +132,7 @@ const MapCanvas = forwardRef(
     /* --Constants-- */
     const SCALE_BY = 1.05;
     const GRID_COLOR = "rgba(0,0,0,0.6)";
+    const normalizedMapRotation = ((Number(mapRotation) % 360) + 360) % 360;
 
     const handleWheel = (e) => {
       e.evt.preventDefault();
@@ -513,7 +515,16 @@ const MapCanvas = forwardRef(
             }}
           >
             <Layer>
-              <KonvaImage image={imgElement} width={drawWidth} height={drawHeight} />
+              <KonvaImage
+                image={imgElement}
+                x={drawWidth / 2}
+                y={drawHeight / 2}
+                width={drawWidth}
+                height={drawHeight}
+                offsetX={drawWidth / 2}
+                offsetY={drawHeight / 2}
+                rotation={normalizedMapRotation}
+              />
               {showGrid &&
                 gridLine.map((line) => (
                   <Line key={line.key} points={line.points} stroke={GRID_COLOR} strokeWidth={2} />
