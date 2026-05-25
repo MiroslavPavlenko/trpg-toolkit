@@ -98,4 +98,23 @@ describe("<SignUpForm />", () => {
     expect(screen.getByText(/check your email/i)).toBeInTheDocument();
     expect(screen.getByText(/new@example.com/i)).toBeInTheDocument();
   });
+
+  it("uses the current localhost origin for email confirmation redirects", async () => {
+    supabase.auth.signUp.mockResolvedValue({
+      data: { user: { identities: [{ id: "abc" }] } },
+      error: null,
+    });
+    const { user } = setup();
+    await user.type(screen.getByLabelText(/email/i), "local@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.type(screen.getByLabelText(/confirm password/i), "password123");
+    await user.click(screen.getByRole("button", { name: /create account/i }));
+    expect(supabase.auth.signUp).toHaveBeenCalledWith({
+      email: "local@example.com",
+      password: "password123",
+      options: {
+        emailRedirectTo: `${window.location.origin}/login`,
+      },
+    });
+  });
 });
