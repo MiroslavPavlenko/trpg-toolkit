@@ -17,7 +17,7 @@ const sampleBlob = () => ({
       id: "layer-1",
       name: "Layer 1",
       visible: true,
-      map: { backgroundRef: { bucket: "maps", name: "1700000000-tavern.jpg" } },
+      map: { backgroundRef: { bucket: "maps", name: "1700000000-tavern.jpg" }, rotation: 135 },
       participants: [
         {
           id: "p1",
@@ -86,6 +86,10 @@ describe("deserializeVttState", () => {
     });
   });
 
+  it("pulls map rotation out of the active layer", () => {
+    expect(deserializeVttState(sampleBlob()).mapRotation).toBe(135);
+  });
+
   it("falls back to layers[0] when activeLayerId doesn't match", () => {
     const blob = sampleBlob();
     blob.activeLayerId = "does-not-exist";
@@ -112,6 +116,12 @@ describe("deserializeVttState", () => {
     const blob = sampleBlob();
     blob.layers[0].map.backgroundRef = null;
     expect(deserializeVttState(blob).backgroundRef).toBeNull();
+  });
+
+  it("defaults map rotation to 0 when none was saved", () => {
+    const blob = sampleBlob();
+    delete blob.layers[0].map.rotation;
+    expect(deserializeVttState(blob).mapRotation).toBe(0);
   });
 
   it("returns null viewport when none was saved", () => {

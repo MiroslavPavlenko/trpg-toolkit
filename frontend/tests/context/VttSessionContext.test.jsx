@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { fireEvent, renderHook, act, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { CampaignsProvider } from "@/context/CampaignsContext";
 import { EncountersProvider, useEncounters } from "@/context/EncountersContext";
@@ -55,6 +55,8 @@ describe("VttSessionContext", () => {
     const { result } = renderHook(() => useVttSession(), { wrapper: makeWrapper() });
     expect(result.current.participants).toEqual([]);
     expect(result.current.backgroundRef).toBeNull();
+    expect(result.current.mapRotation).toBe(0);
+    expect(result.current.mapRotationStep).toBe(15);
     expect(result.current.grid).toEqual({
       showGrid: true,
       pixelsPerFoot: 10,
@@ -73,6 +75,7 @@ describe("VttSessionContext", () => {
       gridFineTune: 2,
       gridOffsetX: 3,
       gridOffsetY: 4,
+      mapRotation: 45,
       backgroundRef: { bucket: "maps", name: "saved.png" },
       participants: [makeParticipant({ id: "p1", cell: { x: 1, y: 2 } })],
       drawings: [
@@ -98,6 +101,7 @@ describe("VttSessionContext", () => {
 
     expect(result.current.grid.showGrid).toBe(false);
     expect(result.current.grid.pixelsPerFoot).toBe(12);
+    expect(result.current.mapRotation).toBe(45);
     expect(result.current.backgroundRef).toEqual({ bucket: "maps", name: "saved.png" });
     expect(result.current.drawings).toHaveLength(1);
     expect(result.current.drawings[0].points).toEqual([1, 2, 3, 4]);
@@ -228,6 +232,63 @@ describe("VttSessionContext", () => {
       result.current.clearDrawings();
     });
     expect(result.current.drawings).toEqual([]);
+  });
+
+  it("keeps 360 degrees as a valid map rotation endpoint", () => {
+    const { result } = renderHook(() => useVttSession(), { wrapper: makeWrapper() });
+    act(() => result.current.setMapRotation(360));
+    expect(result.current.mapRotation).toBe(360);
+    expect(result.current.currentVttState.layers[0].map.rotation).toBe(360);
+  });
+
+  it("undoLastAction restores map rotation, token movement, and drawings one step at a time", () => {
+    const { result } = renderHook(() => useVttSession(), { wrapper: makeWrapper() });
+    const drawing = {
+      id: "draw-1",
+      tool: "pen",
+      color: "#38bdf8",
+      strokeWidth: 8,
+      points: [10, 10, 20, 20],
+    };
+
+    act(() => result.current.addParticipant(makeParticipant({ id: "p1" })));
+    act(() => result.current.moveToken("p1", { x: 4, y: 7 }));
+    expect(result.current.participants[0].cell).toEqual({ x: 4, y: 7 });
+
+    act(() => result.current.setMapRotation(90));
+    expect(result.current.mapRotation).toBe(90);
+
+    act(() => result.current.addDrawing(drawing));
+    expect(result.current.drawings).toEqual([drawing]);
+
+    act(() => result.current.undoLastAction());
+    expect(result.current.drawings).toEqual([]);
+
+    act(() => result.current.undoLastAction());
+    expect(result.current.mapRotation).toBe(0);
+
+    act(() => result.current.undoLastAction());
+    expect(result.current.participants[0].cell).toEqual({ x: 0, y: 0 });
+  });
+
+  it("Ctrl+Z runs the VTT undo stack outside text inputs", () => {
+    const { result } = renderHook(() => useVttSession(), { wrapper: makeWrapper() });
+
+    act(() => result.current.setMapRotation(180));
+    fireEvent.keyDown(window, { key: "z", ctrlKey: true });
+
+    expect(result.current.mapRotation).toBe(0);
+  });
+
+  it("Q and E rotate the map by the configured shortcut step", () => {
+    const { result } = renderHook(() => useVttSession(), { wrapper: makeWrapper() });
+
+    act(() => result.current.setMapRotationStep(30));
+    fireEvent.keyDown(window, { key: "e" });
+    expect(result.current.mapRotation).toBe(30);
+
+    fireEvent.keyDown(window, { key: "q" });
+    expect(result.current.mapRotation).toBe(0);
   });
 
   it("enriches monster participants with Supabase image_url when missing", async () => {
@@ -368,6 +429,7 @@ describe("VttSessionContext", () => {
       result.current.setBackground("blob://x", "fancy-map.png");
       result.current.setShowGrid(false);
       result.current.setPixelsPerFoot(11);
+      result.current.setMapRotation(405);
       result.current.addDrawing({
         id: "draw-1",
         tool: "pen",
@@ -387,6 +449,7 @@ describe("VttSessionContext", () => {
       gridOffsetY: 0,
     });
     expect(snap.layers[0].map.backgroundRef).toEqual({ bucket: "maps", name: "fancy-map.png" });
+    expect(snap.layers[0].map.rotation).toBe(45);
     expect(snap.layers[0].drawings).toHaveLength(1);
     expect(snap.layers[0].participants).toHaveLength(1);
     expect(snap.layers[0].combat).toEqual({ active: false, round: 1, queue: [] });
