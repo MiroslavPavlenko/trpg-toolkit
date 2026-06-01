@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import SignUpForm from "@/components/SignUpForm";
+import { getEmailRedirectUrl } from "@/services/authRedirect";
 
 vi.mock("@/services/supabaseClient", () => ({
   supabase: {
@@ -99,7 +100,7 @@ describe("<SignUpForm />", () => {
     expect(screen.getByText(/new@example.com/i)).toBeInTheDocument();
   });
 
-  it("uses the current localhost origin for email confirmation redirects", async () => {
+  it("uses the current app URL for email confirmation redirects", async () => {
     supabase.auth.signUp.mockResolvedValue({
       data: { user: { identities: [{ id: "abc" }] } },
       error: null,
@@ -116,5 +117,11 @@ describe("<SignUpForm />", () => {
         emailRedirectTo: `${window.location.origin}/login`,
       },
     });
+  });
+
+  it("includes the configured GitHub Pages base path in email confirmation redirects", () => {
+    expect(getEmailRedirectUrl("https://eblaug-uw.github.io", "/trpg-toolkit/")).toBe(
+      "https://eblaug-uw.github.io/trpg-toolkit/login",
+    );
   });
 });

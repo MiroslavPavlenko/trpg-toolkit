@@ -26,6 +26,18 @@ The same six stages exist in two places:
 2. **Settings → Actions → General →** workflow permissions: **Read and write**.
 3. That's it. `GITHUB_TOKEN` is auto-provisioned and handles both Pages and GHCR.
 
+## One-time Supabase auth setup
+
+In the Supabase dashboard, open **Authentication -> URL Configuration** and set:
+
+- **Site URL:** `https://eblaug-uw.github.io/trpg-toolkit/`
+- **Redirect URLs:** add `https://eblaug-uw.github.io/trpg-toolkit/login`
+
+For local signup testing, also add `http://localhost:3000/login` to **Redirect
+URLs**. Supabase falls back to the Site URL when a requested email redirect is
+not allowed, so leaving the Site URL as `http://localhost:3000` breaks
+production confirmation links.
+
 ## Running in the cloud
 
 Push to `main` (directly or via merged PR). The `CD` workflow starts on its
@@ -85,3 +97,4 @@ Any failure fails the `verify` job and the whole pipeline.
 - **Smoke test fails right after enabling Pages:** DNS propagation; re-run once.
 - **Image push 403:** Settings → Actions → General → workflow permissions = Read and write.
 - **Assets 404 on Pages:** confirm `--base="/trpg-toolkit/"` is being passed in the `package` job.
+- **Confirmation email opens localhost:** update Supabase **Authentication -> URL Configuration** using the production Site URL and Redirect URL above.

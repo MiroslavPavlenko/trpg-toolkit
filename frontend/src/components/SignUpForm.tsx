@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import "../style/SignUpForm.css";
+import { getEmailRedirectUrl } from "../services/authRedirect";
 import { supabase } from "../services/supabaseClient";
 
 function SignUpForm() {
@@ -27,7 +28,7 @@ function SignUpForm() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/login`,
+        emailRedirectTo: getEmailRedirectUrl(),
       },
     });
 
