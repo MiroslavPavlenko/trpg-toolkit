@@ -10,7 +10,9 @@ import {
   Label,
   Tag,
   Rect,
+  Shape,
 } from "react-konva";
+import { drawGrid } from "./mapCanvasGrid";
 
 function cellToPixel(cellX, cellY, gridSize, gridOffsetX, gridOffsetY) {
   const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
@@ -353,19 +355,6 @@ const MapCanvas = forwardRef(
     const drawWidth = imgSize ? imgSize.width * scale : 0;
     const drawHeight = imgSize ? imgSize.height * scale : 0;
 
-    const gridLine = [];
-    if (imgSize) {
-      const offX = ((gridOffsetX % gridSize) + gridSize) % gridSize;
-      const offY = ((gridOffsetY % gridSize) + gridSize) % gridSize;
-
-      for (let x = offX; x <= drawWidth; x += gridSize) {
-        gridLine.push({ points: [x, 0, x, drawHeight], key: `v${x}` });
-      }
-      for (let y = offY; y <= drawHeight; y += gridSize) {
-        gridLine.push({ points: [0, y, drawWidth, y], key: `h${y}` });
-      }
-    }
-
     const fitScale =
       imgSize && containerSize.width > 0 && drawWidth > 0
         ? Math.min(containerSize.width / drawWidth, containerSize.height / drawHeight)
@@ -525,10 +514,25 @@ const MapCanvas = forwardRef(
                 offsetY={drawHeight / 2}
                 rotation={normalizedMapRotation}
               />
-              {showGrid &&
-                gridLine.map((line) => (
-                  <Line key={line.key} points={line.points} stroke={GRID_COLOR} strokeWidth={2} />
-                ))}
+              {showGrid && (
+                <Shape
+                  sceneFunc={(context, shape) =>
+                    drawGrid(
+                      context,
+                      shape,
+                      drawWidth,
+                      drawHeight,
+                      gridSize,
+                      gridOffsetX,
+                      gridOffsetY,
+                    )
+                  }
+                  stroke={GRID_COLOR}
+                  strokeWidth={2}
+                  listening={false}
+                  perfectDrawEnabled={false}
+                />
+              )}
 
               {[...drawings, activeDrawing].filter(Boolean).map((drawing) => (
                 <Line
